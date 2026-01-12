@@ -2,37 +2,60 @@
 using MSMPSharp.Models.RPC;
 using MSMPSharp.Modules;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System.Net.WebSockets;
 using System.Text;
 
 namespace MSMPSharp.Core;
 
-public class MsmpClient(string host, int port)
+public class MsmpClient
 {
-    private readonly Uri _serverUri = new Uri($"ws://{host}:{port}");
-    private readonly ClientWebSocket _socket = new();
+    private static readonly JsonSerializerSettings _jsonSettings = new() { ContractResolver = new DefaultContractResolver { NamingStrategy = new LowerCaseNamingStrategy() } };
 
-    private int _requestId = 0;
+    private readonly Uri _serverUri;
+    private readonly ClientWebSocket _socket;
 
-    private readonly JsonSerializerSettings _jsonSettings = new()
+    private int _latestRequestId = 1;
+
+    public MsmpClient(string host, int port, string secret)
     {
-        ContractResolver = new DefaultContractResolver { NamingStrategy = new LowerCaseNamingStrategy() }
-    };
-
-    public async Task ConnectAsync() => await _socket.ConnectAsync(_serverUri, CancellationToken.None);
-
-    private async Task SendRequestAsync(JsonRpcRequest request)
-    {
-        string json = JsonConvert.SerializeObject(request, _jsonSettings);
-        var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
-        await _socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+        _serverUri = new Uri($"ws://{host}:{port}");
+        _socket = new ClientWebSocket();
+        _socket.Options.SetRequestHeader("Authorization", $"Bearer {secret}");
     }
 
+    /// <summary>
+    /// Connects to the Minecraft server through the websocket.
+    /// </summary>
+    public async Task ConnectAsync() => await _socket.ConnectAsync(_serverUri, CancellationToken.None);
+
+    public async Task DisconnectAsync()
+    {
+        await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Success.", CancellationToken.None);
+        _socket.Dispose();
+    }
+
+    /// <summary>
+    /// Sends an RPC request as JSON to the Minecraft server through the websocket.
+    /// </summary>
+    private async Task SendRequestAsync(JsonRpcRequest request)
+    {
+        // Custom JSON setting required to convert all property names to lowercase
+        string json = JsonConvert.SerializeObject(request, _jsonSettings);
+        var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
+
+        await _socket.SendAsync(buffer, WebSocketMessageType.Text, endOfMessage: true, CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Receives a JSON RPC response and returns the result as the specified type.
+    /// </summary>
+    /// <typeparam name="T">The expected type of the response result.</typeparam>
     private async Task<T> ReceiveResponseAsync<T>()
     {
         string json = await _socket.ReceiveInChunksAsync(CancellationToken.None);
-        JsonRpcResponse<T>? response = JsonConvert.DeserializeObject<JsonRpcResponse<T>>(json) ?? throw new InvalidOperationException("Invalid JSON-RPC response");
+        var response = JsonConvert.DeserializeObject<JsonRpcResponse>(json) ?? throw new InvalidOperationException("Invalid JSON-RPC response.");
 
         if (response.Error is not null)
             throw new WebSocketException($"{response.Error.Message} ({response.Error.Code})\n\"{response.Error.Data}\"");
@@ -40,7 +63,12 @@ public class MsmpClient(string host, int port)
         if (response.Result is null)
             throw new InvalidOperationException("Missing result in response.");
 
-        return response.Result;
+        if (response.Result is JObject jobj)
+            return jobj.ToObject<T>()!;
+        if (response.Result is JArray jarr)
+            return jarr.ToObject<T>()!;
+
+        return (T) response.Result;
     }
 
     public async Task<T> CallMethodAsync<T>(string method) => await CallMethodAsync<T>(method, Array.Empty<object>());
@@ -51,7 +79,7 @@ public class MsmpClient(string host, int port)
         {
             Method = method,
             Params = parameters,
-            Id = _requestId++
+            Id = _latestRequestId++
         });
 
         return await ReceiveResponseAsync<T>();
