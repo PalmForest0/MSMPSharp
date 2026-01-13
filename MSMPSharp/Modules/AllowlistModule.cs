@@ -23,21 +23,21 @@ public class AllowlistModule
     /// </summary>
     /// <param name="players">An array of players to set the allowlist to.</param>
     /// <returns>An array of players representing the new allowlist.</returns>
-    public async Task<Player[]> SetAsync(Player[] players) => await _client.CallMethodAsync<Player[]>("minecraft:allowlist/set", [ players ]);
+    public async Task<Player[]> SetAsync(Player[] players) => await _client.CallMethodAsync<Player[]>("minecraft:allowlist/set", [players]);
 
     /// <summary>
     /// Adds players to the allowlist.
     /// </summary>
     /// <param name="players">An array of players to add to the allowlist.</param>
     /// <returns>An array of players representing the new allowlist.</returns>
-    public async Task<Player[]> AddAsync(Player[] players) => await _client.CallMethodAsync<Player[]>("minecraft:allowlist/add", [ players ]);
+    public async Task<Player[]> AddAsync(Player[] players) => await _client.CallMethodAsync<Player[]>("minecraft:allowlist/add", [players]);
 
     /// <summary>
     /// Removes players from the allowlist.
     /// </summary>
     /// <param name="players">An array of players to remove from the allowlist.</param>
     /// <returns>An array of players representing the new allowlist.</returns>
-    public async Task<Player[]> RemoveAsync(Player[] players) => await _client.CallMethodAsync<Player[]>("minecraft:allowlist/remove", [ players ]);
+    public async Task<Player[]> RemoveAsync(Player[] players) => await _client.CallMethodAsync<Player[]>("minecraft:allowlist/remove", [players]);
 
     /// <summary>
     /// Clears all players from the allowlist.

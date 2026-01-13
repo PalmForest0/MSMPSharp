@@ -19,6 +19,8 @@ public class MsmpClient
 
     public PlayersModule Players { get; }
     public AllowlistModule Allowlist { get; }
+    public BansModule Bans { get; }
+    public IpBansModule IpBans { get; }
 
     public MsmpClient(string host, int port, string secret)
     {
@@ -28,6 +30,8 @@ public class MsmpClient
 
         Players = new PlayersModule(this);
         Allowlist = new AllowlistModule(this);
+        Bans = new BansModule(this);
+        IpBans = new IpBansModule(this);
     }
 
     /// <summary>
@@ -66,7 +70,7 @@ public class MsmpClient
             throw new WebSocketException($"{response.Error.Message} ({response.Error.Code})\n\"{response.Error.Data}\"");
 
         if (response.Result is null)
-            throw new InvalidOperationException("Missing result in response.");
+            throw new InvalidOperationException("Result is missing from the response.");
 
         return response.Result.ToObject<T>()!;
     }

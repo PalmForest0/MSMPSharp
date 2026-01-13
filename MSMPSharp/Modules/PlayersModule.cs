@@ -24,5 +24,5 @@ public class PlayersModule
     /// </summary>
     /// <param name="kickPlayers">An array of kick data objects.</param>
     /// <returns>An array of kicked players.</returns>
-    public async Task<Player[]> KickAsync(KickPlayer[] kickPlayers) => await _client.CallMethodAsync<Player[]>("minecraft:players/kick", [ kickPlayers ]);
+    public async Task<Player[]> KickAsync(KickPlayer[] kickPlayers) => await _client.CallMethodAsync<Player[]>("minecraft:players/kick", [kickPlayers]);
 }
