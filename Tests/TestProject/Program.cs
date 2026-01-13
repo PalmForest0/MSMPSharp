@@ -17,15 +17,23 @@ await client.ConnectAsync();
 //foreach(var player in players)
 //    Console.WriteLine($"Name: {player.Name}, Id: {player.Id}");
 
-await client.Server.SendSystemMessageAsync(new SystemMessage()
+KickPlayer[] kicks = (await client.Players.GetAsync()).Select(player => new KickPlayer()
 {
-    Message = new Message()
-    {
-        Literal = "bro what"
-    },
-    Overlay = true,
-    ReceivingPlayers = await client.Players.GetAsync()
-});
+    Player = player,
+    Message = new Message() { Literal = "haha get kicked lol" }
+}).ToArray();
+
+await client.Players.KickAsync(kicks);
+
+//await client.Server.SendSystemMessageAsync(new SystemMessage()
+//{
+//    Message = new Message()
+//    {
+//        Literal = "bro what"
+//    },
+//    Overlay = true,
+//    ReceivingPlayers = await client.Players.GetAsync()
+//});
 
 //string input = "";
 

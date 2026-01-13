@@ -23,6 +23,7 @@ public class MsmpClient
     public IpBansModule IpBans { get; }
     public OperatorsModule Operators { get; }
     public ServerModule Server { get; }
+    public GamerulesModule Gamerules { get; }
 
     public MsmpClient(string host, int port, string secret)
     {
@@ -36,6 +37,7 @@ public class MsmpClient
         IpBans = new IpBansModule(this);
         Operators = new OperatorsModule(this);
         Server = new ServerModule(this);
+        Gamerules = new GamerulesModule(this);
     }
 
     /// <summary>
