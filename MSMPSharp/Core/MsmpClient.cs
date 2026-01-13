@@ -21,6 +21,8 @@ public class MsmpClient
     public AllowlistModule Allowlist { get; }
     public BansModule Bans { get; }
     public IpBansModule IpBans { get; }
+    public OperatorsModule Operators { get; }
+    public ServerModule Server { get; }
 
     public MsmpClient(string host, int port, string secret)
     {
@@ -32,6 +34,8 @@ public class MsmpClient
         Allowlist = new AllowlistModule(this);
         Bans = new BansModule(this);
         IpBans = new IpBansModule(this);
+        Operators = new OperatorsModule(this);
+        Server = new ServerModule(this);
     }
 
     /// <summary>

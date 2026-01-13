@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Serialization;
 
-namespace MSMPSharp.Modules;
+namespace MSMPSharp.Extensions;
 
 public class LowerCaseNamingStrategy : NamingStrategy
 {

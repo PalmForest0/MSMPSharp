@@ -17,33 +17,34 @@ await client.ConnectAsync();
 //foreach(var player in players)
 //    Console.WriteLine($"Name: {player.Name}, Id: {player.Id}");
 
-string input = "";
-
-do
+await client.Server.SendSystemMessageAsync(new SystemMessage()
 {
-    Console.Write("---------------------------------\nEnter a method and its params: ");
-    input = Console.ReadLine() ?? "rpc.discover";
-
-    try
+    Message = new Message()
     {
-        KickPlayer[] players = [new KickPlayer()
-        {
-            Player = (await client.CallMethodAsync<Player[]>("minecraft:players"))[0],
-            Message = new Message()
-            {
-                Literal = input,
-            }
-        }];
+        Literal = "bro what"
+    },
+    Overlay = true,
+    ReceivingPlayers = await client.Players.GetAsync()
+});
 
-        var result = await client.CallMethodAsync<JToken>("minecraft:players/kick", [ players ]);
-        Console.WriteLine(result.ToString(Formatting.Indented));
-    }
-    catch(Exception e)
-    {
-        Console.WriteLine($"Invalid method request:\n{e.Message}"); 
-    }
-}
-while (!string.IsNullOrWhiteSpace(input) && input.ToLowerInvariant() != "stop");
+//string input = "";
+
+//do
+//{
+//    Console.Write("---------------------------------\nEnter a method and its params: ");
+//    input = Console.ReadLine() ?? "rpc.discover";
+
+//    try
+//    {
+//        var result = await client.CallMethodAsync<JToken>(input);
+//        Console.WriteLine(result.ToString(Formatting.Indented));
+//    }
+//    catch(Exception e)
+//    {
+//        Console.WriteLine($"Invalid method request:\n{e.Message}"); 
+//    }
+//}
+//while (!string.IsNullOrWhiteSpace(input) && input.ToLowerInvariant() != "stop");
 
 
 await client.DisconnectAsync();
