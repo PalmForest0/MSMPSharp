@@ -2,7 +2,6 @@
 using MSMPSharp.Models.RPC;
 using MSMPSharp.Modules;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System.Net.WebSockets;
 using System.Text;
@@ -18,11 +17,17 @@ public class MsmpClient
 
     private int _latestRequestId = 1;
 
+    public PlayersModule Players { get; }
+    public AllowlistModule Allowlist { get; }
+
     public MsmpClient(string host, int port, string secret)
     {
         _serverUri = new Uri($"ws://{host}:{port}");
         _socket = new ClientWebSocket();
         _socket.Options.SetRequestHeader("Authorization", $"Bearer {secret}");
+
+        Players = new PlayersModule(this);
+        Allowlist = new AllowlistModule(this);
     }
 
     /// <summary>
@@ -63,17 +68,12 @@ public class MsmpClient
         if (response.Result is null)
             throw new InvalidOperationException("Missing result in response.");
 
-        if (response.Result is JObject jobj)
-            return jobj.ToObject<T>()!;
-        if (response.Result is JArray jarr)
-            return jarr.ToObject<T>()!;
-
-        return (T) response.Result;
+        return response.Result.ToObject<T>()!;
     }
 
     public async Task<T> CallMethodAsync<T>(string method) => await CallMethodAsync<T>(method, Array.Empty<object>());
 
-    public async Task<T> CallMethodAsync<T>(string method, params object[] parameters)
+    public async Task<T> CallMethodAsync<T>(string method, object[] parameters)
     {
         await SendRequestAsync(new JsonRpcRequest
         {

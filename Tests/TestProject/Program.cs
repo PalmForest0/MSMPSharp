@@ -1,5 +1,6 @@
 ﻿using MSMPSharp.Core;
 using MSMPSharp.Models.Game;
+using MSMPSharp.Models.Server;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -16,18 +17,33 @@ await client.ConnectAsync();
 //foreach(var player in players)
 //    Console.WriteLine($"Name: {player.Name}, Id: {player.Id}");
 
-string? input = "";
+string input = "";
 
 do
 {
-    Console.WriteLine("Enter a method and its params: ");
-    input = Console.ReadLine();
+    Console.Write("---------------------------------\nEnter a method and its params: ");
+    input = Console.ReadLine() ?? "rpc.discover";
 
-    var result = await client.CallMethodAsync<JObject>(input);
-    Console.WriteLine(result.ToString(Formatting.Indented));
+    try
+    {
+        KickPlayer[] players = [new KickPlayer()
+        {
+            Player = (await client.CallMethodAsync<Player[]>("minecraft:players"))[0],
+            Message = new Message()
+            {
+                Literal = input,
+            }
+        }];
+
+        var result = await client.CallMethodAsync<JToken>("minecraft:players/kick", [ players ]);
+        Console.WriteLine(result.ToString(Formatting.Indented));
+    }
+    catch(Exception e)
+    {
+        Console.WriteLine($"Invalid method request:\n{e.Message}"); 
+    }
 }
 while (!string.IsNullOrWhiteSpace(input) && input.ToLowerInvariant() != "stop");
 
 
 await client.DisconnectAsync();
-
