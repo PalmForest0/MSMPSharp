@@ -16,10 +16,10 @@ public class MsmpClient : IAsyncDisposable
     private readonly Uri _serverUri;
     private readonly ClientWebSocket _socket;
 
-    private int _latestRequestId = 0;
-
+    private readonly Dictionary<string, Action<JsonNotification>> _notificationEvents = new();
     private readonly Dictionary<int, TaskCompletionSource<JsonRpcResponse>> _pendingRequests = new();
-    private readonly object _lockRequests = new();
+    private readonly object _requestsLock = new();
+    private int _latestRequestId = 0;
 
     // All modules available within the client
     public PlayersModule Players { get; }
@@ -30,6 +30,10 @@ public class MsmpClient : IAsyncDisposable
     public ServerModule Server { get; }
     public GameRulesModule GameRules { get; }
     public ServerSettingsModule ServerSettings { get; }
+
+    // Client events
+    public event EventHandler? OnConnected;
+    public event EventHandler? OnDisconnected;
 
     public MsmpClient(string host, int port, string secret)
     {
@@ -54,8 +58,11 @@ public class MsmpClient : IAsyncDisposable
     {
         await _socket.ConnectAsync(_serverUri, CancellationToken.None);
 
+        OnConnected?.Invoke(this, EventArgs.Empty);
+
         // Start a receive loop on a second thread
-        _ = Task.Run(ReceiveLoopAsync);
+        _ = Task.Run(ReceiveLoopAsync)
+            .ContinueWith(async (_) => await DisconnectAsync());
     }
 
     /// <summary>
@@ -65,7 +72,8 @@ public class MsmpClient : IAsyncDisposable
     {
         if (_socket.State == WebSocketState.Open)
             await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Success.", CancellationToken.None);
-        _socket.Dispose();
+
+        OnDisconnected?.Invoke(this, EventArgs.Empty);
     }
 
     private async Task ReceiveLoopAsync()
@@ -75,16 +83,18 @@ public class MsmpClient : IAsyncDisposable
             string json = await _socket.ReceiveInChunksAsync(CancellationToken.None);
             var obj = JObject.Parse(json);
 
-            if(obj is null)
+            if (obj is null)
                 continue;
 
-            // If the json has an id, it is a response
+            // If the json has an id, it is a jobj
             if (obj["id"] is not null)
                 HandleResponse(obj);
             // If the json has a method, it is a notification
             else if (obj["method"] is not null)
                 HandleNotification(obj);
         }
+
+        await DisconnectAsync();
     }
 
     private void HandleResponse(JObject jobj)
@@ -94,9 +104,9 @@ public class MsmpClient : IAsyncDisposable
         if (response is null)
             return;
 
-        // Find the task that corresponds to this response id
+        // Find the task that corresponds to this jobj id
         TaskCompletionSource<JsonRpcResponse>? tcs;
-        lock(_lockRequests)
+        lock (_requestsLock)
         {
             if (!_pendingRequests.TryGetValue(response.Id, out tcs))
                 return;
@@ -110,14 +120,28 @@ public class MsmpClient : IAsyncDisposable
         if (response.Result is null)
             throw new InvalidOperationException("Result is missing from the response.");
 
-        // Set the task result to the response
+        Console.WriteLine(jobj.ToString(Formatting.Indented));
+
+        // Set the task result to the jobj
         tcs.SetResult(response);
     }
 
-    private void HandleNotification(JObject response)
+    private void HandleNotification(JObject jobj)
     {
-        throw new NotImplementedException();
+        var notif = jobj.ToObject<JsonNotification>();
+
+        if (notif is null)
+            return;
+
+        if (notif.Method is null)
+            throw new InvalidOperationException("Incoming notification has no method.");
+
+        // Call all handlers for the method notification
+        if (_notificationEvents.TryGetValue(notif.Method, out var handler))
+            handler.Invoke(notif);
     }
+
+    internal void SetNotificationEvent(string method, Action<JsonNotification> handler) => _notificationEvents[method] = handler;
 
     /// <summary>
     /// Sends an RPC request as JSON to the Minecraft server through the websocket.
@@ -125,6 +149,9 @@ public class MsmpClient : IAsyncDisposable
     /// <param name="request">The JSON-RPC request to send.</param>
     private async Task SendRequestAsync(JsonRpcRequest request)
     {
+        if (_socket.State != WebSocketState.Open)
+            return;
+
         // Custom JSON setting required to convert all property names to lowercase
         string json = JsonConvert.SerializeObject(request, _jsonSettings);
         var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
@@ -157,9 +184,9 @@ public class MsmpClient : IAsyncDisposable
 
         // Create TaskCompletionSource
         var tcs = new TaskCompletionSource<JsonRpcResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
-        
+
         // Add it with this request's id
-        lock (_lockRequests)
+        lock (_requestsLock)
         {
             _pendingRequests.Add(_latestRequestId, tcs);
         }
@@ -177,5 +204,5 @@ public class MsmpClient : IAsyncDisposable
     /// <summary>
     /// Asynchronously disposes the client and closes the websocket connection.
     /// </summary>
-    public async ValueTask DisposeAsync() => await DisconnectAsync();
+    public async ValueTask DisposeAsync() => _socket.Dispose();
 }

@@ -6,7 +6,16 @@ namespace MSMPSharp.Modules;
 
 public sealed class PlayersModule : ModuleBase
 {
-    internal PlayersModule(MsmpClient client) : base(client) { }
+    internal PlayersModule(MsmpClient client) : base(client)
+    {
+        client.SetNotificationEvent("minecraft:notification/players/joined", notif =>
+        {
+            if (notif.TryGetParams<Player[]>(out var players))
+                PlayerJoined?.Invoke(players![0]);              
+        });
+    }
+
+    public event Action<Player>? PlayerJoined;
 
     /// <summary>
     /// Gets all connected players.
