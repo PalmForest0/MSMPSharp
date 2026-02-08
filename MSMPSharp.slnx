@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="MSMPSharp/MSMPSharp.csproj" />
-  <Project Path="Tests/TestProject/TestProject.csproj" />
+  <Project Path="src/MSMPSharp.csproj" />
+  <Project Path="tests/TestProject/TestProject.csproj" />
 </Solution>

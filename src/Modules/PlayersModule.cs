@@ -4,25 +4,20 @@ using MSMPSharp.Models.Server;
 
 namespace MSMPSharp.Modules;
 
-public class PlayersModule
+public sealed class PlayersModule : ModuleBase
 {
-    private readonly MsmpClient _client;
-
-    internal PlayersModule(MsmpClient client)
-    { 
-        _client = client; 
-    }
+    internal PlayersModule(MsmpClient client) : base(client) { }
 
     /// <summary>
     /// Gets all connected players.
     /// </summary>
     /// <returns>An array of players.</returns>
-    public async Task<Player[]> GetAsync() => await _client.CallMethodAsync<Player[]>("minecraft:players");
+    public async Task<Player[]> GetAsync() => await client.CallMethodAsync<Player[]>("minecraft:players");
 
     /// <summary>
     /// Kicks players from the server.
     /// </summary>
     /// <param name="kickPlayers">An array of kick data objects.</param>
     /// <returns>An array of kicked players.</returns>
-    public async Task<Player[]> KickAsync(KickPlayer[] kickPlayers) => await _client.CallMethodAsync<Player[]>("minecraft:players/kick", [kickPlayers]);
+    public async Task<Player[]> KickAsync(KickPlayer[] kickPlayers) => await client.CallMethodAsync<Player[]>("minecraft:players/kick", [kickPlayers]);
 }
