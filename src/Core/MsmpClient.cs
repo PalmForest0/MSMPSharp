@@ -16,7 +16,7 @@ public class MsmpClient : IAsyncDisposable
     private readonly Uri _serverUri;
     private readonly ClientWebSocket _socket;
 
-    private readonly Dictionary<string, Action<JsonNotification>> _notificationEvents = new();
+    private readonly Dictionary<string, Action<JsonRpcNotification>> _notificationEvents = new();
     private readonly Dictionary<int, TaskCompletionSource<JsonRpcResponse>> _pendingRequests = new();
     private readonly object _requestsLock = new();
     private int _latestRequestId = 0;
@@ -128,7 +128,7 @@ public class MsmpClient : IAsyncDisposable
 
     private void HandleNotification(JObject jobj)
     {
-        var notif = jobj.ToObject<JsonNotification>();
+        var notif = jobj.ToObject<JsonRpcNotification>();
 
         if (notif is null)
             return;
@@ -141,7 +141,7 @@ public class MsmpClient : IAsyncDisposable
             handler.Invoke(notif);
     }
 
-    internal void SetNotificationEvent(string method, Action<JsonNotification> handler) => _notificationEvents[method] = handler;
+    internal void SetNotificationEvent(string method, Action<JsonRpcNotification> handler) => _notificationEvents[method] = handler;
 
     /// <summary>
     /// Sends an RPC request as JSON to the Minecraft server through the websocket.

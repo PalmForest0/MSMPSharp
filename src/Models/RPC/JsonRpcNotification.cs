@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace MSMPSharp.Models.RPC;
 
-public sealed class JsonNotification
+public sealed class JsonRpcNotification
 {
     public string Jsonrpc { get; set; } = "2.0";
     public required string Method { get; set; }
