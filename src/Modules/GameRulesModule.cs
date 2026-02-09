@@ -5,7 +5,19 @@ namespace MSMPSharp.Modules;
 
 public sealed class GameRulesModule : ModuleBase
 {
-    internal GameRulesModule(MsmpClient client) : base(client) { }
+    internal GameRulesModule(MsmpClient client) : base(client)
+    {
+        client.SetNotificationEvent("minecraft:notification/gamerules/updated", notif =>
+        {
+            if (notif.TryGetParams<TypedGameRule[]>(out var list))
+                Updated?.Invoke(list![0]);
+        });
+    }
+
+    /// <summary>
+    /// An event that is invoked when a game rule was changed.
+    /// </summary>
+    public event Action<TypedGameRule>? Updated;
 
     /// <summary>
     /// Get the available game rule keys and their current values.

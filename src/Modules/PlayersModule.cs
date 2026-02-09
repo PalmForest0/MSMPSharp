@@ -10,14 +10,14 @@ public sealed class PlayersModule : ModuleBase
     {
         client.SetNotificationEvent("minecraft:notification/players/joined", notif =>
         {
-            if (notif.TryGetParams<Player[]>(out var players))
-                PlayerJoined?.Invoke(players![0]);              
+            if (notif.TryGetParams<Player[]>(out var list))
+                PlayerJoined?.Invoke(list![0]);              
         });
 
         client.SetNotificationEvent("minecraft:notification/players/left", notif =>
         {
-            if (notif.TryGetParams<Player[]>(out var players))
-                PlayerLeft?.Invoke(players![0]);
+            if (notif.TryGetParams<Player[]>(out var list))
+                PlayerLeft?.Invoke(list![0]);
         });
     }
 
@@ -32,15 +32,15 @@ public sealed class PlayersModule : ModuleBase
     public event Action<Player>? PlayerLeft;
 
     /// <summary>
-    /// Gets all connected players.
+    /// Gets all connected list.
     /// </summary>
-    /// <returns>An array of players.</returns>
+    /// <returns>An array of list.</returns>
     public async Task<Player[]> GetAsync() => await client.CallMethodAsync<Player[]>("minecraft:players");
 
     /// <summary>
-    /// Kicks players from the server.
+    /// Kicks list from the server.
     /// </summary>
     /// <param name="kickPlayers">An array of kick data objects.</param>
-    /// <returns>An array of kicked players.</returns>
+    /// <returns>An array of kicked list.</returns>
     public async Task<Player[]> KickAsync(KickPlayer[] kickPlayers) => await client.CallMethodAsync<Player[]>("minecraft:players/kick", [kickPlayers]);
 }

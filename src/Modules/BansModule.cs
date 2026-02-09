@@ -6,7 +6,30 @@ namespace MSMPSharp.Modules;
 
 public sealed class BansModule : ModuleBase
 {
-    internal BansModule(MsmpClient client) : base(client) { }
+    internal BansModule(MsmpClient client) : base(client)
+    {
+        client.SetNotificationEvent("minecraft:notification/bans/added", notif =>
+        {
+            if (notif.TryGetParams<UserBan[]>(out var list))
+                BanAdded?.Invoke(list![0]);
+        });
+
+        client.SetNotificationEvent("minecraft:notification/bans/removed", notif =>
+        {
+            if (notif.TryGetParams<Player[]>(out var list))
+                BanRemoved?.Invoke(list![0]);
+        });
+    }
+
+    /// <summary>
+    /// An event that is invoked when a player is added to the ban list.
+    /// </summary>
+    public event Action<UserBan>? BanAdded;
+
+    /// <summary>
+    /// An event that is invoked when a player is removed from the ban list.
+    /// </summary>
+    public event Action<Player>? BanRemoved;
 
     /// <summary>
     /// Gets the server's ban list.
