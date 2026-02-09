@@ -5,7 +5,50 @@ namespace MSMPSharp.Modules;
 
 public sealed class ServerModule : ModuleBase
 {
-    internal ServerModule(MsmpClient client) : base(client) { }
+    internal ServerModule(MsmpClient client) : base(client)
+    {
+        client.SetNotificationEvent("minecraft:notification/server/started", _ => Started?.Invoke());
+        client.SetNotificationEvent("minecraft:notification/server/stopping", _ => Stopping?.Invoke());
+        client.SetNotificationEvent("minecraft:notification/server/saving", _ => Saving?.Invoke());
+        client.SetNotificationEvent("minecraft:notification/server/saved", _ => Saved?.Invoke());
+        client.SetNotificationEvent("minecraft:notification/server/activity", _ => Activity?.Invoke());
+
+        client.SetNotificationEvent("minecraft:notification/server/status", notif =>
+        {
+            if (notif.TryGetParams<ServerState[]>(out var list))
+                Status?.Invoke(list![0]);
+        });
+    }
+
+    /// <summary>
+    /// An event that is invoked when the server is started.
+    /// </summary>
+    public event Action? Started;
+
+    /// <summary>
+    /// An event that is invoked when the server is shutting down.
+    /// </summary>
+    public event Action? Stopping;
+
+    /// <summary>
+    /// An event that is invoked when the server save is started.
+    /// </summary>
+    public event Action? Saving;
+
+    /// <summary>
+    /// An event that is invoked when the server save is completed.
+    /// </summary>
+    public event Action? Saved;
+
+    /// <summary>
+    /// An event that is invoked on every server status heartbeat.
+    /// </summary>
+    public event Action<ServerState>? Status;
+
+    /// <summary>
+    /// An event that is invoked when the network connection is initialized.
+    /// </summary>
+    public event Action? Activity;
 
     /// <summary>
     /// Gets the server's current status.

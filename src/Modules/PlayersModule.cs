@@ -13,9 +13,23 @@ public sealed class PlayersModule : ModuleBase
             if (notif.TryGetParams<Player[]>(out var players))
                 PlayerJoined?.Invoke(players![0]);              
         });
+
+        client.SetNotificationEvent("minecraft:notification/players/left", notif =>
+        {
+            if (notif.TryGetParams<Player[]>(out var players))
+                PlayerLeft?.Invoke(players![0]);
+        });
     }
 
+    /// <summary>
+    /// An event that is invoked when a player joins the server.
+    /// </summary>
     public event Action<Player>? PlayerJoined;
+
+    /// <summary>
+    /// An event that is invoked when a player leaves the server.
+    /// </summary>
+    public event Action<Player>? PlayerLeft;
 
     /// <summary>
     /// Gets all connected players.
