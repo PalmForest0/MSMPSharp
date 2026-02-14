@@ -1,5 +1,5 @@
 ﻿using MSMPSharp.Extensions;
-using MSMPSharp.Models.RPC;
+using MSMPSharp.Data.RPC;
 using MSMPSharp.Modules;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

@@ -1,4 +1,4 @@
-﻿namespace MSMPSharp.Models.RPC;
+﻿namespace MSMPSharp.Data.RPC;
 
 public sealed class RpcError
 {

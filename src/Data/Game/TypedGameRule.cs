@@ -1,4 +1,4 @@
-﻿namespace MSMPSharp.Models.Game;
+﻿namespace MSMPSharp.Data.Game;
 
 public sealed class TypedGameRule
 {

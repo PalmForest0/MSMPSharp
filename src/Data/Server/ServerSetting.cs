@@ -1,6 +1,6 @@
 ﻿using MSMPSharp.Core;
 
-namespace MSMPSharp.Models.Server;
+namespace MSMPSharp.Data.Server;
 
 public sealed class ServerSetting<T>
 {

@@ -1,4 +1,4 @@
-﻿namespace MSMPSharp.Models.Server;
+﻿namespace MSMPSharp.Data.Server;
 
 public class Message
 {

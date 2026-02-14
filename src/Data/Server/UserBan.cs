@@ -1,6 +1,6 @@
-﻿using MSMPSharp.Models.Game;
+﻿using MSMPSharp.Data.Game;
 
-namespace MSMPSharp.Models.Server;
+namespace MSMPSharp.Data.Server;
 
 public class UserBan
 {

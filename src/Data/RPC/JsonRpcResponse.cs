@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace MSMPSharp.Models.RPC;
+namespace MSMPSharp.Data.RPC;
 
 public sealed class JsonRpcResponse
 {

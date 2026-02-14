@@ -1,6 +1,6 @@
 ﻿using MSMPSharp.Core;
-using MSMPSharp.Models.Game;
-using MSMPSharp.Models.Server;
+using MSMPSharp.Data.Game;
+using MSMPSharp.Data.Server;
 
 namespace MSMPSharp.Modules;
 

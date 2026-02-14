@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections;
 
-namespace MSMPSharp.Models.RPC;
+namespace MSMPSharp.Data.RPC;
 
 public sealed class JsonRpcNotification
 {

@@ -1,5 +1,5 @@
 ﻿using MSMPSharp.Core;
-using MSMPSharp.Models.Game;
+using MSMPSharp.Data.Game;
 
 namespace MSMPSharp.Modules;
 
