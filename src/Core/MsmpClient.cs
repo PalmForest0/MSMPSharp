@@ -11,14 +11,18 @@ namespace MSMPSharp.Core;
 
 public class MsmpClient : IAsyncDisposable
 {
-    private static readonly JsonSerializerSettings _jsonSettings = new() { ContractResolver = new DefaultContractResolver { NamingStrategy = new LowerCaseNamingStrategy() } };
+    private static readonly JsonSerializerSettings _jsonSettings = new() 
+    { 
+        ContractResolver = new DefaultContractResolver { NamingStrategy = new LowerCaseNamingStrategy() },
+        NullValueHandling = NullValueHandling.Ignore
+    };
 
     private readonly Uri _serverUri;
     private readonly ClientWebSocket _socket;
 
     private readonly Dictionary<string, Action<JsonRpcNotification>> _notificationEvents = new();
     private readonly Dictionary<int, TaskCompletionSource<JsonRpcResponse>> _pendingRequests = new();
-    private readonly object _requestsLock = new();
+    private readonly Lock _requestsLock = new();
     private int _latestRequestId = 0;
 
     // All modules available within the client
@@ -69,9 +73,10 @@ public class MsmpClient : IAsyncDisposable
     /// </summary>
     public async Task DisconnectAsync()
     {
-        if (_socket.State == WebSocketState.Open)
-            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Success.", CancellationToken.None);
+        if(_socket.State != WebSocketState.Open)
+            return;
 
+        await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Success.", CancellationToken.None);
         OnDisconnected?.Invoke(this, EventArgs.Empty);
     }
 
@@ -203,8 +208,14 @@ public class MsmpClient : IAsyncDisposable
         return result;
     }
 
+    public async Task<JObject> GetSchemaAsync() => await CallMethodAsync<JObject>("rpc.discover");
+
     /// <summary>
     /// Asynchronously disposes the client and closes the websocket connection.
     /// </summary>
-    public async ValueTask DisposeAsync() => _socket.Dispose();
+    public async ValueTask DisposeAsync()
+    {
+        await DisconnectAsync();
+        _socket.Dispose();
+    }
 }

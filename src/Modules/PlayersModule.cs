@@ -11,7 +11,7 @@ public sealed class PlayersModule : ModuleBase
         client.SetNotificationEvent("minecraft:notification/players/joined", notif =>
         {
             if (notif.TryGetParams<Player[]>(out var list))
-                PlayerJoined?.Invoke(list![0]);              
+                PlayerJoined?.Invoke(list![0]);
         });
 
         client.SetNotificationEvent("minecraft:notification/players/left", notif =>
@@ -32,15 +32,39 @@ public sealed class PlayersModule : ModuleBase
     public event Action<Player>? PlayerLeft;
 
     /// <summary>
-    /// Gets all connected list.
+    /// Gets all connected players filtered with an optional condition.
     /// </summary>
-    /// <returns>An array of list.</returns>
-    public async Task<Player[]> GetAsync() => await client.CallMethodAsync<Player[]>("minecraft:players");
+    /// <returns>An array of players that meet the condition.</returns>
+    public async Task<Player[]> GetAsync(Func<Player, bool>? condition = null)
+    {
+        var players = await client.CallMethodAsync<Player[]>("minecraft:players");
+        return condition is null ? players : players.Where(condition).ToArray();
+    }
 
     /// <summary>
-    /// Kicks list from the server.
+    /// Gets the first connected player that meets the condition.
     /// </summary>
-    /// <param name="kickPlayers">An array of kick data objects.</param>
-    /// <returns>An array of kicked list.</returns>
+    /// <returns>The first player that meets the condition, otherwise null.</returns>
+    public async Task<Player?> GetFirstAsync(Func<Player, bool> condition)
+    {
+        if (condition is null)
+            return null;
+
+        var players = (await client.CallMethodAsync<Player[]>("minecraft:players")).Where(condition).ToArray();
+        return players.Length == 0 ? null : players[0];
+    }
+
+    /// <summary>
+    /// Kicks players from the server.
+    /// </summary>
+    /// <param name="kickPlayers">An array of player kick data objects.</param>
+    /// <returns>An array of kicked players.</returns>
     public async Task<Player[]> KickAsync(KickPlayer[] kickPlayers) => await client.CallMethodAsync<Player[]>("minecraft:players/kick", [kickPlayers]);
+
+    /// <summary>
+    /// Kicks a player from the server.
+    /// </summary>
+    /// <param name="kickPlayer">A player kick data object.</param>
+    /// <returns>An array of kicked players.</returns>
+    public async Task<Player[]> KickAsync(KickPlayer kickPlayer) => await KickAsync([kickPlayer]);
 }
