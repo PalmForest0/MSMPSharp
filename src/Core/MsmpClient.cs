@@ -61,8 +61,7 @@ public class MsmpClient : IAsyncDisposable
         OnConnected?.Invoke(this, EventArgs.Empty);
 
         // Start a receive loop on a second thread
-        _ = Task.Run(ReceiveLoopAsync)
-            .ContinueWith(async (_) => await DisconnectAsync());
+        _ = Task.Run(ReceiveLoopAsync);
     }
 
     /// <summary>
@@ -78,23 +77,28 @@ public class MsmpClient : IAsyncDisposable
 
     private async Task ReceiveLoopAsync()
     {
-        while (_socket.State == WebSocketState.Open)
+        try
         {
-            string json = await _socket.ReceiveInChunksAsync(CancellationToken.None);
-            var obj = JObject.Parse(json);
+            while (_socket.State == WebSocketState.Open)
+            {
+                string json = await _socket.ReceiveInChunksAsync(CancellationToken.None);
+                var obj = JObject.Parse(json);
 
-            if (obj is null)
-                continue;
+                if (obj is null)
+                    continue;
 
-            // If the json has an id, it is a jobj
-            if (obj["id"] is not null)
-                HandleResponse(obj);
-            // If the json has a method, it is a notification
-            else if (obj["method"] is not null)
-                HandleNotification(obj);
+                // If the json has an id, it is a jobj
+                if (obj["id"] is not null)
+                    HandleResponse(obj);
+                // If the json has a method, it is a notification
+                else if (obj["method"] is not null)
+                    HandleNotification(obj);
+            }
         }
-
-        await DisconnectAsync();
+        finally
+        {
+            await DisconnectAsync();
+        }
     }
 
     private void HandleResponse(JObject jobj)
@@ -114,16 +118,15 @@ public class MsmpClient : IAsyncDisposable
             _pendingRequests.Remove(response.Id);
         }
 
+        // Set the result of the task to this response, or set an exception if there is an error
         if (response.Error is not null)
-            throw new WebSocketException($"{response.Error.Message} ({response.Error.Code})\n\"{response.Error.Data}\"");
-
-        if (response.Result is null)
-            throw new InvalidOperationException("Result is missing from the response.");
-
-        Console.WriteLine(jobj.ToString(Formatting.Indented));
-
-        // Set the task result to the jobj
-        tcs.SetResult(response);
+        {
+            tcs.SetException(new WebSocketException($"{response.Error.Message} ({response.Error.Code})\n\"{response.Error.Data}\""));
+        }
+        else
+        {
+            tcs.SetResult(response);
+        }
     }
 
     private void HandleNotification(JObject jobj)
@@ -132,11 +135,10 @@ public class MsmpClient : IAsyncDisposable
 
         if (notif is null)
             return;
-
         if (notif.Method is null)
-            throw new InvalidOperationException("Incoming notification has no method.");
+            return;
 
-        // Call all handlers for the method notification
+        // Call handler event for the method notification
         if (_notificationEvents.TryGetValue(notif.Method, out var handler))
             handler.Invoke(notif);
     }
