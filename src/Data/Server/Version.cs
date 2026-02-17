@@ -2,6 +2,8 @@
 
 public class Version
 {
-    public string Name { get; set; }
-    public string Protocol { get; set; }
+    public string Name { get; set; } = "";
+    public string Protocol { get; set; } = "";
+
+    private Version() { }
 }

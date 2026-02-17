@@ -25,4 +25,10 @@ public class Message
         Translatable = translationKey;
         TranslatableParams = translationParams;
     }
+
+    /// <summary>
+    /// Create a a message using a string literal implicitly.
+    /// </summary>
+    /// <param name="literal">String literal to create a message from.</param>
+    public static implicit operator Message(string literal) => new Message(literal);
 }

@@ -17,15 +17,4 @@ public class KickPlayer
         Player = player;
         Message = message;
     }
-
-    /// <summary>
-    /// Creates data to kick a provided player with a message using the specified string literal.
-    /// </summary>
-    /// <param name="player">Player to kick from the server.</param>
-    /// <param name="messageString">String literal to use for the message that will be shown to the player.</param>
-    public KickPlayer(Player player, string messageString)
-    {
-        Player = player;
-        Message = new Message(messageString);
-    }
 }
