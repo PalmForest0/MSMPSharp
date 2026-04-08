@@ -186,7 +186,7 @@ public class MsmpClient : IAsyncDisposable
         {
             Method = method,
             Params = parameters,
-            Id = ++_latestRequestId
+            Id = Interlocked.Increment(ref _latestRequestId)
         });
 
         // Create TaskCompletionSource
