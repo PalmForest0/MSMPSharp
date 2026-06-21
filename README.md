@@ -12,6 +12,7 @@ For more info on the **MSMP** see: https://minecraft.wiki/w/Minecraft_Server_Man
 - **JSON-RPC** request/response and notification handling
 - **Modular API** separates each area of server management into its own module
 - **Async/await** pattern present in client and all logic
+- **TLS Support** allows a secured connection to the server
 
 ---
 
@@ -88,16 +89,14 @@ if(player is not null)
 
 ## TODO / Potential Improvements
  
-- [ ] **TLS and Keystore support** – Provide the ability to connect with TLS enabled
 - [ ] **NuGet package** – Publish to NuGet so the library can be installed without cloning the repo
 - [ ] **CancellationToken** – Use the cancellation token throughout client logic instead of  `CancellationToken.None`
 - [ ] **Reconnection logic** – Add automatic reconnection with exponential backoff
 - [ ] **Timeout handling** – Add a configurable request timeout to prevent freezing
-- [ ] **Replace Newtonsoft.Json** – Reduces the reliance on external dependencies if possible
+- [ ] **Replace Newtonsoft.Json** – Reduce the reliance on external dependencies if possible
 - [ ] **Structured logging** – Add `ILogger` / `Microsoft.Extensions.Logging` support so callers can control log output
 - [ ] **Improve Usability** – Include more intuitive methods in modules to make performing basic actions easier
 - [ ] **Dependency injection** – Potentially register `MsmpClient` as a DI service to allow for cleaner usage
-- [ ] **Strongly-typed notifications** – Replace Actions and `JsonRpcNotification` with typed events for notifications
 - [ ] **Better custom endpoint support** – Allow easier handling of custom requests and notifications, such as those added by mod loaders
 
 ---
