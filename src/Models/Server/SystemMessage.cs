@@ -2,23 +2,32 @@
 
 namespace MSMPSharp.Models.Server;
 
-public class SystemMessage
+public sealed class SystemMessage
 {
-    public Player[] ReceivingPlayers { get; set; }
-    public bool Overlay { get; set; }
-    public Message Message { get; set; }
+    public Player[] ReceivingPlayers { get; }
+    public Message Message { get; }
+    public bool Overlay { get; }
 
-    public SystemMessage(Player[] players, Message message, bool overlay = false)
+    private SystemMessage(Message message, Player[] players, bool overlay)
     {
         ReceivingPlayers = players;
         Message = message;
         Overlay = overlay;
     }
 
-    public SystemMessage(Player[] players, string messageLiteral, bool overlay = false)
-    {
-        ReceivingPlayers = players;
-        Message = new Message(messageLiteral);
-        Overlay = overlay;
-    }
+    /// <summary>
+    /// Creates a system message for the specified players which will be displayed in chat.
+    /// </summary>
+    /// <param name="message">Message to be displayed</param>
+    /// <param name="players">Players to receive the message</param>
+    /// <returns>The system message with the provided parameters</returns>
+    public static SystemMessage InChat(Message message, params Player[] players) => new SystemMessage(message, players, false);
+
+    /// <summary>
+    /// Creates a system message for the specified players which will be displayed in the overlay (above the players' hotbar).
+    /// </summary>
+    /// <param name="message">Message to be displayed</param>
+    /// <param name="players">Players to receive the message</param>
+    /// <returns>The system message with the provided parameters</returns>
+    public static SystemMessage InOverlay(Message message, params Player[] players) => new SystemMessage(message, players, true);
 }

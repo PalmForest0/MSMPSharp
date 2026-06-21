@@ -3,53 +3,74 @@ using MSMPSharp.Models.Game;
 using MSMPSharp.Models.Server;
 using Newtonsoft.Json.Linq;
 
+// Do not warn about unused methods
+#pragma warning disable CS8321
+
+// Create the client
 await using var client = MsmpClient.CreateBuilder()
     .WithHost("localhost", 25585)
     .WithSecret("n09TPqHgJtqtUvCrhebO0DxcJtaW8Io9hyjbEw1y")
     .Build();
 
+// Subscribe to events with console log statements
 client.Connected += (sender, e) => Console.WriteLine($"Connected to {e.ServerUri}.");
 client.Disconnected += (sender, e) => Console.WriteLine($"Disconnected from {e.ServerUri}.");
-
 client.Players.PlayerJoined += (sender, e) => Console.WriteLine($"{e.Player.Name} ({e.Player.Id}) joined the game.");
 client.Players.PlayerLeft += (sender, e) => Console.WriteLine($"{e.Player.Name} ({e.Player.Id}) left the game.");
 
+// Connect to the server
 await client.ConnectAsync();
-await client.IpBans.ClearAsync();
 
-Console.Write("Enter player name: ");
-string? name = Console.ReadLine();
-Player? testPlayer = null;
+Player player = await GetTestPlayer(client);
+await TestSystemMessage(client, player);
 
-if(!string.IsNullOrWhiteSpace(name))
-    testPlayer = await client.Players.GetFirstAsync(player => player.Name == name);
+// Disconnect from the server
+await client.DisconnectAsync();
 
-await IpBanTest();
 
-async Task SaveSchema()
+static async Task SaveSchema(MsmpClient client)
 {
     JObject schema = await client.GetSchemaAsync();
-    //Console.WriteLine(schema.ToString(Newtonsoft.Json.Formatting.Indented));
     await File.WriteAllTextAsync("schema.json", schema.ToString(Newtonsoft.Json.Formatting.Indented));
 }
 
-async Task IpBanTest()
+static async Task<Player> GetTestPlayer(MsmpClient client)
+{
+    Player? player = null;
+
+    do
+    {
+        Console.Write("Enter test player name: ");
+        string? name = Console.ReadLine();
+
+        if (!string.IsNullOrWhiteSpace(name))
+            player = await client.Players.GetFirstAsync(player => player.Name == name);
+
+        if(player is null)
+            Console.WriteLine("Player not found, try again.");
+    }
+    while (player is null);
+
+    return player;
+}
+
+static async Task TestSystemMessage(MsmpClient client, Player player)
+{
+    await client.Server.SendSystemMessageAsync(SystemMessage.InChat(Message.FromTranslatable("advancements.adventure.spyglass_at_parrot.title"), player));
+}
+
+static async Task TestIpBan(MsmpClient client, Player player)
 {
     await client.IpBans.ClearAsync();
-    //var bans = await client.Bans.GetAsync();
-
-    await client.IpBans.AddAsync([
-        new IncomingIpBan(testPlayer, DateTime.Now.AddSeconds(10))]);
+    await client.IpBans.AddAsync(new IncomingIpBan(player, DateTime.Now.AddSeconds(10)));
 }
 
-async Task TestKick()
+static async Task TestKick(MsmpClient client, Player player)
 {
-    await client.Players.KickAsync(new KickPlayer(
-        testPlayer,
-        new Message("advancements.adventure.spyglass_at_parrot.title", [])));
+    await client.Players.KickAsync(new KickPlayer(player, Message.FromTranslatable("advancements.adventure.spyglass_at_parrot.title")));
 }
 
-async Task TestMotd(int repeatCount)
+static async Task TestMotd(MsmpClient client, int repeatCount)
 {
     for (int i = 0; i < repeatCount; i++)
     {
