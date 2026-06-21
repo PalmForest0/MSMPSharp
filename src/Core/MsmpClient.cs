@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System.Net.WebSockets;
 using System.Text;
+using System.Net.Security;
 
 namespace MSMPSharp.Core;
 
@@ -39,11 +40,19 @@ public class MsmpClient : IAsyncDisposable
     public event EventHandler? OnConnected;
     public event EventHandler? OnDisconnected;
 
-    public MsmpClient(string host, int port, string secret)
+    public static MsmpClientBuilder CreateBuilder() => new MsmpClientBuilder();
+
+    internal MsmpClient(string host, int port, string secret, bool useTls, string? origin, RemoteCertificateValidationCallback? certValidator)
     {
-        _serverUri = new Uri($"ws://{host}:{port}");
+        _serverUri = new Uri($"{(useTls ? "wss" : "ws")}://{host}:{port}");
         _socket = new ClientWebSocket();
         _socket.Options.SetRequestHeader("Authorization", $"Bearer {secret}");
+
+        if (origin is not null)
+            _socket.Options.SetRequestHeader("Origin", origin);
+
+        if (certValidator is not null)
+            _socket.Options.RemoteCertificateValidationCallback = certValidator;
 
         Players = new PlayersModule(this);
         Allowlist = new AllowlistModule(this);
