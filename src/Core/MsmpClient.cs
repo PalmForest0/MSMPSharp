@@ -12,9 +12,9 @@ namespace MSMPSharp.Core;
 
 public class MsmpClient : IAsyncDisposable
 {
-    private static readonly JsonSerializerSettings _jsonSettings = new() 
-    { 
-        ContractResolver = new DefaultContractResolver { NamingStrategy = new LowerCaseNamingStrategy() },
+    private static readonly JsonSerializerSettings _jsonSettings = new()
+    {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
         NullValueHandling = NullValueHandling.Ignore
     };
 
@@ -40,8 +40,6 @@ public class MsmpClient : IAsyncDisposable
     public event EventHandler? OnConnected;
     public event EventHandler? OnDisconnected;
 
-    public static MsmpClientBuilder CreateBuilder() => new MsmpClientBuilder();
-
     internal MsmpClient(string host, int port, string secret, bool useTls, string? origin, RemoteCertificateValidationCallback? certValidator)
     {
         _serverUri = new Uri($"{(useTls ? "wss" : "ws")}://{host}:{port}");
@@ -63,6 +61,7 @@ public class MsmpClient : IAsyncDisposable
         GameRules = new GameRulesModule(this);
         ServerSettings = new ServerSettingsModule(this);
     }
+    public static MsmpClientBuilder CreateBuilder() => new MsmpClientBuilder();
 
     /// <summary>
     /// Connects to the Minecraft server through the websocket.
@@ -101,12 +100,13 @@ public class MsmpClient : IAsyncDisposable
                 if (obj is null)
                     continue;
 
-                // If the json has an id, it is a jobj
+                // If the json has an id, it is a method response
                 if (obj["id"] is not null)
-                    HandleResponse(obj);
+                    HandleResponse(obj.ToObject<JsonRpcResponse>());
+
                 // If the json has a method, it is a notification
                 else if (obj["method"] is not null)
-                    HandleNotification(obj);
+                    HandleNotification(obj.ToObject<JsonRpcNotification>());
             }
         }
         finally
@@ -115,14 +115,12 @@ public class MsmpClient : IAsyncDisposable
         }
     }
 
-    private void HandleResponse(JObject jobj)
+    private void HandleResponse(JsonRpcResponse? response)
     {
-        var response = jobj.ToObject<JsonRpcResponse>();
-
         if (response is null)
             return;
 
-        // Find the task that corresponds to this jobj id
+        // Find the task that corresponds to this response id
         TaskCompletionSource<JsonRpcResponse>? tcs;
         lock (_requestsLock)
         {
@@ -135,7 +133,7 @@ public class MsmpClient : IAsyncDisposable
         // Set the result of the task to this response, or set an exception if there is an error
         if (response.Error is not null)
         {
-            tcs.SetException(new WebSocketException($"{response.Error.Message} ({response.Error.Code})\n\"{response.Error.Data}\""));
+            tcs.SetException(new MsmpException(response.Error.Message, response.Error.Code, response.Error.Data));
         }
         else
         {
@@ -143,10 +141,8 @@ public class MsmpClient : IAsyncDisposable
         }
     }
 
-    private void HandleNotification(JObject jobj)
+    private void HandleNotification(JsonRpcNotification? notif)
     {
-        var notif = jobj.ToObject<JsonRpcNotification>();
-
         if (notif is null)
             return;
         if (notif.Method is null)
@@ -157,7 +153,7 @@ public class MsmpClient : IAsyncDisposable
             handler.Invoke(notif);
     }
 
-    internal void SetNotificationEvent(string method, Action<JsonRpcNotification> handler) => _notificationEvents[method] = handler;
+    internal void SetNotificationHandler(string method, Action<JsonRpcNotification> handler) => _notificationEvents[method] = handler;
 
     /// <summary>
     /// Sends an RPC request as JSON to the Minecraft server through the websocket.
@@ -166,7 +162,7 @@ public class MsmpClient : IAsyncDisposable
     private async Task SendRequestAsync(JsonRpcRequest request)
     {
         if (_socket.State != WebSocketState.Open)
-            return;
+            throw new InvalidOperationException($"Cannot send request: socket is {_socket.State}. Call ConnectAsync() first.");
 
         // Custom JSON setting required to convert all property names to lowercase
         string json = JsonConvert.SerializeObject(request, _jsonSettings);
@@ -175,49 +171,37 @@ public class MsmpClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// Calls a JSON-RPC method on the Minecraft server with no parameters.
-    /// </summary>
-    /// <typeparam name="T">The expected type of the jobj result.</typeparam>
-    /// <param name="method">The name of the method to call.</param>
-    /// <returns>The deserialized result of type <typeparamref name="T"/>.</returns>
-    public async Task<T> CallMethodAsync<T>(string method) => await CallMethodAsync<T>(method, Array.Empty<object>());
-
-    /// <summary>
     /// Calls a JSON-RPC method on the Minecraft server with the specified parameters.
     /// </summary>
-    /// <typeparam name="T">The expected type of the jobj result.</typeparam>
+    /// <typeparam name="T">The expected type of the responseObj result.</typeparam>
     /// <param name="method">The name of the method to call.</param>
     /// <param name="parameters">The parameters to pass to the method.</param>
     /// <returns>The deserialized result of type <typeparamref name="T"/>.</returns>
-    public async Task<T> CallMethodAsync<T>(string method, object[] parameters)
+    public async Task<T> SendAsync<T>(string method, object[]? parameters = null)
     {
+        // Increment request id at the start
+        int id = Interlocked.Increment(ref _latestRequestId);
+
+        // Create TaskCompletionSource and add it using the incremented request id
+        var tcs = new TaskCompletionSource<JsonRpcResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
+        lock (_requestsLock)
+            _pendingRequests.Add(id, tcs);
+
         await SendRequestAsync(new JsonRpcRequest
         {
             Method = method,
-            Params = parameters,
-            Id = Interlocked.Increment(ref _latestRequestId)
+            Params = parameters ?? [],
+            Id = id
         });
-
-        // Create TaskCompletionSource
-        var tcs = new TaskCompletionSource<JsonRpcResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        // Add it with this request's id
-        lock (_requestsLock)
-        {
-            _pendingRequests.Add(_latestRequestId, tcs);
-        }
 
         // Await until the task result is set by the receiver
         var response = await tcs.Task;
         var result = response.Result!.ToObject<T>();
 
-        if (result is null)
-            throw new InvalidOperationException($"Failed to deserialize result to type {typeof(T).Name}.");
-
-        return result;
+        return result ?? throw new InvalidOperationException($"Failed to deserialize result to type {typeof(T).Name} for method {method}.");
     }
 
-    public async Task<JObject> GetSchemaAsync() => await CallMethodAsync<JObject>("rpc.discover");
+    public async Task<JObject> GetSchemaAsync() => await SendAsync<JObject>("rpc.discover");
 
     /// <summary>
     /// Asynchronously disposes the client and closes the websocket connection.

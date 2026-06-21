@@ -5,12 +5,12 @@ namespace MSMPSharp.Core;
 
 public class MsmpClientBuilder
 {
-    private string? address;
-    private int? port;
-    private string? secret;
-    private string? origin;
-    private bool useTls;
-    private RemoteCertificateValidationCallback? certValidator;
+    private string? _address;
+    private int? _port;
+    private string? _secret;
+    private string? _origin;
+    private bool _useTls;
+    private RemoteCertificateValidationCallback? _certValidator;
 
     internal MsmpClientBuilder() { }
 
@@ -23,8 +23,8 @@ public class MsmpClientBuilder
     /// <returns>This client builder instance with the host address and port set.</returns>
     public MsmpClientBuilder WithHost(string address, int port)
     {
-        this.address = address;
-        this.port = port;
+        _address = address;
+        _port = port;
         return this;
     }
 
@@ -36,7 +36,7 @@ public class MsmpClientBuilder
     /// <returns>This client builder instance with the secret set.</returns>
     public MsmpClientBuilder WithSecret(string secret)
     {
-        this.secret = secret;
+        _secret = secret;
         return this;
     }
 
@@ -47,7 +47,7 @@ public class MsmpClientBuilder
     /// <returns>This client builder instance with the origin set.</returns>
     public MsmpClientBuilder WithOrigin(string origin)
     {
-        this.origin = origin;
+        _origin = origin;
         return this;
     }
 
@@ -63,14 +63,14 @@ public class MsmpClientBuilder
     /// <returns>This client builder instance with TLS enabled.</returns>
     public MsmpClientBuilder WithTls(bool skipVerification = false, string? sha256Thumbprint = null)
     {
-        this.useTls = true;
+        _useTls = true;
 
         if (skipVerification)
-            certValidator = (_, _, _, _) => true;
+           _certValidator = (_, _, _, _) => true;
         if(sha256Thumbprint != null)
         {
             sha256Thumbprint = sha256Thumbprint.Replace(":", "").Replace(" ", "").ToUpperInvariant();
-            certValidator = (_, cert, _, _) =>
+            _certValidator = (_, cert, _, _) =>
             {
                 if (cert is null)
                     return false;
@@ -91,11 +91,11 @@ public class MsmpClientBuilder
     /// <exception cref="InvalidOperationException">Thrown if the host, port, or secret is not specified.</exception>
     public MsmpClient Build()
     {
-        if (address == null || port == null)
+        if (_address == null || _port == null)
             throw new InvalidOperationException("Host and port must be specified using WithHost() before building the client.");
-        if(secret == null)
+        if(_secret == null)
             throw new InvalidOperationException("Secret must be specified using WithSecret() before building the client.");
 
-        return new MsmpClient(address, port.Value, secret, useTls, origin, certValidator);
+        return new MsmpClient(_address, _port.Value, _secret, _useTls, _origin, _certValidator);
     }
 }
