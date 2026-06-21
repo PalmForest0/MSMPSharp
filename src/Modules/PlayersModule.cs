@@ -1,4 +1,5 @@
 ﻿using MSMPSharp.Core;
+using MSMPSharp.Events;
 using MSMPSharp.Models.Game;
 using MSMPSharp.Models.Server;
 
@@ -11,25 +12,25 @@ public sealed class PlayersModule : ModuleBase
         client.SetNotificationHandler("minecraft:notification/players/joined", notif =>
         {
             if (notif.TryGetParams<Player[]>(out var list))
-                PlayerJoined?.Invoke(list![0]);
+                PlayerJoined?.Invoke(this, new PlayerEventArgs(list![0]));
         });
 
         client.SetNotificationHandler("minecraft:notification/players/left", notif =>
         {
             if (notif.TryGetParams<Player[]>(out var list))
-                PlayerLeft?.Invoke(list![0]);
+                PlayerLeft?.Invoke(this, new PlayerEventArgs(list![0]));
         });
     }
 
     /// <summary>
     /// An event that is invoked when a player joins the server.
     /// </summary>
-    public event Action<Player>? PlayerJoined;
+    public event EventHandler<PlayerEventArgs>? PlayerJoined;
 
     /// <summary>
     /// An event that is invoked when a player leaves the server.
     /// </summary>
-    public event Action<Player>? PlayerLeft;
+    public event EventHandler<PlayerEventArgs>? PlayerLeft;
 
     /// <summary>
     /// Gets all connected players filtered with an optional condition.

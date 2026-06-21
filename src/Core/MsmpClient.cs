@@ -7,6 +7,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Net.Security;
 using MSMPSharp.Core.Internal;
+using MSMPSharp.Events;
 
 namespace MSMPSharp.Core;
 
@@ -37,8 +38,8 @@ public class MsmpClient : IAsyncDisposable
     public ServerSettingsModule ServerSettings { get; }
 
     // Client events
-    public event EventHandler? OnConnected;
-    public event EventHandler? OnDisconnected;
+    public event EventHandler<ConnectionEventArgs>? Connected;
+    public event EventHandler<ConnectionEventArgs>? Disconnected;
 
     internal MsmpClient(string host, int port, string secret, bool useTls, string? origin, RemoteCertificateValidationCallback? certValidator)
     {
@@ -70,7 +71,7 @@ public class MsmpClient : IAsyncDisposable
     {
         await _socket.ConnectAsync(_serverUri, CancellationToken.None);
 
-        OnConnected?.Invoke(this, EventArgs.Empty);
+        Connected?.Invoke(this, new ConnectionEventArgs(_serverUri));
 
         // Start a receive loop on a second thread
         _ = Task.Run(ReceiveLoopAsync);
@@ -85,7 +86,7 @@ public class MsmpClient : IAsyncDisposable
             return;
 
         await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Success.", CancellationToken.None);
-        OnDisconnected?.Invoke(this, EventArgs.Empty);
+        Disconnected?.Invoke(this, new ConnectionEventArgs(_serverUri));
     }
 
     private async Task ReceiveLoopAsync()

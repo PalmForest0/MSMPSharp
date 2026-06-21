@@ -8,10 +8,11 @@ await using var client = MsmpClient.CreateBuilder()
     .WithSecret("n09TPqHgJtqtUvCrhebO0DxcJtaW8Io9hyjbEw1y")
     .Build();
 
-client.OnConnected += (_, _) => Console.WriteLine("Connected.");
-client.OnDisconnected += (_, _) => Console.WriteLine("Disconnected.");
-client.Players.PlayerJoined += player => Console.WriteLine($"{player.Name} ({player.Id}) joined the game.");
-client.Players.PlayerLeft += player => Console.WriteLine($"{player.Name} ({player.Id}) left the game.");
+client.Connected += (sender, e) => Console.WriteLine($"Connected to {e.ServerUri}.");
+client.Disconnected += (sender, e) => Console.WriteLine($"Disconnected from {e.ServerUri}.");
+
+client.Players.PlayerJoined += (sender, e) => Console.WriteLine($"{e.Player.Name} ({e.Player.Id}) joined the game.");
+client.Players.PlayerLeft += (sender, e) => Console.WriteLine($"{e.Player.Name} ({e.Player.Id}) left the game.");
 
 await client.ConnectAsync();
 await client.IpBans.ClearAsync();
