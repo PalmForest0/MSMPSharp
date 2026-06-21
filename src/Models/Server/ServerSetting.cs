@@ -1,6 +1,6 @@
 ﻿using MSMPSharp.Core;
 
-namespace MSMPSharp.Data.Server;
+namespace MSMPSharp.Models.Server;
 
 public sealed class ServerSetting<T>
 {
@@ -24,5 +24,5 @@ public sealed class ServerSetting<T>
     /// </summary>
     /// <param name="value">The new value to set.</param>
     /// <returns>The updated value after the set operation.</returns>
-    public async Task<T> SetAsync(T value) => await client.CallMethodAsync<T>($"minecraft:serversettings/{settingName}/set", [value]);
+    public async Task<T> SetAsync(T value) => await client.SendAsync<T>($"minecraft:serversettings/{settingName}/set", [value]);
 }

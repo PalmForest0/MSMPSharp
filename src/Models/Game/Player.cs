@@ -1,4 +1,4 @@
-﻿namespace MSMPSharp.Data.Game;
+﻿namespace MSMPSharp.Models.Game;
 
 public sealed class Player
 {

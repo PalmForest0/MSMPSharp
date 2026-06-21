@@ -1,4 +1,4 @@
-﻿namespace MSMPSharp.Data.Server;
+﻿namespace MSMPSharp.Models.Server;
 
 public class Version
 {

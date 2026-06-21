@@ -1,7 +1,7 @@
-﻿using MSMPSharp.Data.Game;
+﻿using MSMPSharp.Models.Game;
 using MSMPSharp.Extensions;
 
-namespace MSMPSharp.Data.Server;
+namespace MSMPSharp.Models.Server;
 
 public class IncomingIpBan
 {

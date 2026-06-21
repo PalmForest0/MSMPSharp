@@ -1,5 +1,5 @@
 ﻿using MSMPSharp.Core;
-using MSMPSharp.Data.Server;
+using MSMPSharp.Models.Server;
 
 namespace MSMPSharp.Modules;
 

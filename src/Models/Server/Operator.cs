@@ -1,6 +1,6 @@
-﻿using MSMPSharp.Data.Game;
+﻿using MSMPSharp.Models.Game;
 
-namespace MSMPSharp.Data.Server;
+namespace MSMPSharp.Models.Server;
 
 public class Operator
 {
