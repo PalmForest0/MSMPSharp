@@ -1,8 +1,9 @@
 # MSMPSharp
 
-A C# client library for interacting with Minecraft servers via the **MSMP (Minecraft Server Management Protocol)** WebSocket API.
-MSMPSharp provides a clean, asynchronous interface for managing players, bans, operators, game rules, server settings, and more over JSON-RPC.
-For more info on the **MSMP** see: https://minecraft.wiki/w/Minecraft_Server_Management_Protocol
+An async C# client library for managing Minecraft servers via the **MSMP (Minecraft Server Management Protocol)** over **JSON-RPC**.
+MSMPSharp provides a clean, asynchronous interface for managing players, bans, operators, game rules, server settings, and more through convenient modules.
+
+For more info see: https://minecraft.wiki/w/Minecraft_Server_Management_Protocol
 
 ---
 
@@ -35,7 +36,9 @@ Add a project reference in your `.csproj`:
 
 ---
 
-## Quick Start
+## Getting started
+
+For advanced usages examples see the [test projects](https://github.com/PalmForest0/MSMPSharp/tree/main/Tests).
 
 ```csharp
 using MSMPSharp.Core;
@@ -87,7 +90,7 @@ if(player is not null)
 
 ---
 
-## TODO / Potential Improvements
+## TODO
  
 - [ ] **NuGet package** – Publish to NuGet so the library can be installed without cloning the repo
 - [ ] **CancellationToken** – Use the cancellation token throughout client logic instead of  `CancellationToken.None`
@@ -97,7 +100,6 @@ if(player is not null)
 - [ ] **Structured logging** – Add `ILogger` / `Microsoft.Extensions.Logging` support so callers can control log output
 - [ ] **Improve Usability** – Include more intuitive methods in modules to make performing basic actions easier
 - [ ] **Dependency injection** – Potentially register `MsmpClient` as a DI service to allow for cleaner usage
-- [ ] **Better custom endpoint support** – Allow easier handling of custom requests and notifications, such as those added by mod loaders
 
 ---
 
