@@ -3,7 +3,10 @@ using MSMPSharp.Data.Game;
 using MSMPSharp.Data.Server;
 using Newtonsoft.Json.Linq;
 
-await using var client = new MsmpClient("localhost", 25585, "n09TPqHgJtqtUvCrhebO0DxcJtaW8Io9hyjbEw1y");
+await using var client = MsmpClient.CreateBuilder()
+    .WithHost("localhost", 25585)
+    .WithSecret("n09TPqHgJtqtUvCrhebO0DxcJtaW8Io9hyjbEw1y")
+    .Build();
 
 client.OnConnected += (_, _) => Console.WriteLine("Connected.");
 client.OnDisconnected += (_, _) => Console.WriteLine("Disconnected.");
