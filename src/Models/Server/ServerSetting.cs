@@ -17,7 +17,7 @@ public sealed class ServerSetting<T>
     /// Gets the current value.
     /// </summary>
     /// <returns>The current server setting value.</returns>
-    public async Task<T> GetAsync() => await client.CallMethodAsync<T>($"minecraft:serversettings/{settingName}");
+    public async Task<T> GetAsync() => await client.SendAsync<T>($"minecraft:serversettings/{settingName}");
 
     /// <summary>
     /// Sets the value and returns the updated value.

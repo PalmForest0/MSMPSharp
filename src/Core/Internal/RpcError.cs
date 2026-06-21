@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace MSMPSharp.Data.RPC;
+namespace MSMPSharp.Core.Internal;
 
-public sealed class RpcError
+internal sealed class RpcError
 {
     public int Code { get; init; }
     public string Message { get; init; } = "";

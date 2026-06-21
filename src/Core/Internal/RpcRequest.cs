@@ -1,6 +1,6 @@
-﻿namespace MSMPSharp.Data.RPC;
+﻿namespace MSMPSharp.Core.Internal;
 
-public sealed class JsonRpcRequest
+internal sealed class RpcRequest
 {
     public string JsonRpc { get; init; } = "2.0";
     public required string Method { get; init; }

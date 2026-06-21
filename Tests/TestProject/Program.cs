@@ -1,6 +1,6 @@
 ﻿using MSMPSharp.Core;
-using MSMPSharp.Data.Game;
-using MSMPSharp.Data.Server;
+using MSMPSharp.Models.Game;
+using MSMPSharp.Models.Server;
 using Newtonsoft.Json.Linq;
 
 await using var client = MsmpClient.CreateBuilder()

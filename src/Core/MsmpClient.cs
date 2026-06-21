@@ -1,5 +1,4 @@
 ﻿using MSMPSharp.Extensions;
-using MSMPSharp.Data.RPC;
 using MSMPSharp.Modules;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -7,6 +6,7 @@ using Newtonsoft.Json.Serialization;
 using System.Net.WebSockets;
 using System.Text;
 using System.Net.Security;
+using MSMPSharp.Core.Internal;
 
 namespace MSMPSharp.Core;
 
@@ -21,8 +21,8 @@ public class MsmpClient : IAsyncDisposable
     private readonly Uri _serverUri;
     private readonly ClientWebSocket _socket;
 
-    private readonly Dictionary<string, Action<JsonRpcNotification>> _notificationEvents = new();
-    private readonly Dictionary<int, TaskCompletionSource<JsonRpcResponse>> _pendingRequests = new();
+    private readonly Dictionary<string, Action<RpcNotification>> _notificationEvents = new();
+    private readonly Dictionary<int, TaskCompletionSource<RpcResponse>> _pendingRequests = new();
     private readonly Lock _requestsLock = new();
     private int _latestRequestId = 0;
 
@@ -102,11 +102,11 @@ public class MsmpClient : IAsyncDisposable
 
                 // If the json has an id, it is a method response
                 if (obj["id"] is not null)
-                    HandleResponse(obj.ToObject<JsonRpcResponse>());
+                    HandleResponse(obj.ToObject<RpcResponse>());
 
                 // If the json has a method, it is a notification
                 else if (obj["method"] is not null)
-                    HandleNotification(obj.ToObject<JsonRpcNotification>());
+                    HandleNotification(obj.ToObject<RpcNotification>());
             }
         }
         finally
@@ -115,13 +115,13 @@ public class MsmpClient : IAsyncDisposable
         }
     }
 
-    private void HandleResponse(JsonRpcResponse? response)
+    private void HandleResponse(RpcResponse? response)
     {
         if (response is null)
             return;
 
         // Find the task that corresponds to this response id
-        TaskCompletionSource<JsonRpcResponse>? tcs;
+        TaskCompletionSource<RpcResponse>? tcs;
         lock (_requestsLock)
         {
             if (!_pendingRequests.TryGetValue(response.Id, out tcs))
@@ -141,7 +141,7 @@ public class MsmpClient : IAsyncDisposable
         }
     }
 
-    private void HandleNotification(JsonRpcNotification? notif)
+    private void HandleNotification(RpcNotification? notif)
     {
         if (notif is null)
             return;
@@ -153,13 +153,13 @@ public class MsmpClient : IAsyncDisposable
             handler.Invoke(notif);
     }
 
-    internal void SetNotificationHandler(string method, Action<JsonRpcNotification> handler) => _notificationEvents[method] = handler;
+    internal void SetNotificationHandler(string method, Action<RpcNotification> handler) => _notificationEvents[method] = handler;
 
     /// <summary>
     /// Sends an RPC request as JSON to the Minecraft server through the websocket.
     /// </summary>
     /// <param name="request">The JSON-RPC request to send.</param>
-    private async Task SendRequestAsync(JsonRpcRequest request)
+    private async Task SendRequestAsync(RpcRequest request)
     {
         if (_socket.State != WebSocketState.Open)
             throw new InvalidOperationException($"Cannot send request: socket is {_socket.State}. Call ConnectAsync() first.");
@@ -183,11 +183,11 @@ public class MsmpClient : IAsyncDisposable
         int id = Interlocked.Increment(ref _latestRequestId);
 
         // Create TaskCompletionSource and add it using the incremented request id
-        var tcs = new TaskCompletionSource<JsonRpcResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var tcs = new TaskCompletionSource<RpcResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
         lock (_requestsLock)
             _pendingRequests.Add(id, tcs);
 
-        await SendRequestAsync(new JsonRpcRequest
+        await SendRequestAsync(new RpcRequest
         {
             Method = method,
             Params = parameters ?? [],

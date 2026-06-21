@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace MSMPSharp.Data.RPC;
+namespace MSMPSharp.Core.Internal;
 
-public sealed class JsonRpcResponse
+internal sealed class RpcResponse
 {
     public string Jsonrpc { get; init; } = "2.0";
     public int Id { get; init; }
