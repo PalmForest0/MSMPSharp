@@ -1,4 +1,5 @@
 ﻿using MSMPSharp.Core;
+using MSMPSharp.Events;
 using MSMPSharp.Models.Server;
 
 namespace MSMPSharp.Modules;
@@ -10,26 +11,30 @@ public sealed class IpBansModule : ModuleBase
         client.SetNotificationHandler("minecraft:notification/ip_bans/added", notif =>
         {
             if (notif.TryGetParams<IpBan[]>(out var list))
-                IpBanAdded?.Invoke(list![0]);
+                IpBanAdded?.Invoke(this, new IpBanEventArgs(list![0]));
         });
 
-        client.SetNotificationHandler("minecraft:notification/ip_bans/removed", notif =>
+        client.SetNotificationHandler("minecraft:notification/ip_bans/removed", async notif =>
         {
             if (notif.TryGetParams<string[]>(out var list))
-                IpBanRemoved?.Invoke(list![0]);
+            {
+                var allIpBans = await GetAsync();
+                if (allIpBans.FirstOrDefault(ban => ban.Ip == list![0]) is IpBan removedBan)
+                    IpBanRemoved?.Invoke(this, new IpBanEventArgs(removedBan));
+            }
         });
     }
 
     /// <summary>
     /// An event that is invoked when a player is added to the allowlist.
     /// </summary>
-    public event Action<IpBan>? IpBanAdded;
+    public event EventHandler<IpBanEventArgs>? IpBanAdded;
 
     /// <summary>
     /// An event that is invoked when an IP is removed from the ip-ban list.
     /// <para><see langword="string"/> param - Removed Ip.</para>
     /// </summary>
-    public event Action<string>? IpBanRemoved;
+    public event EventHandler<IpBanEventArgs>? IpBanRemoved;
 
     /// <summary>
     /// Gets the server's IP ban list.
