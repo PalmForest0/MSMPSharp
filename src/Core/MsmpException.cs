@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Text.Json.Nodes;
 
 namespace MSMPSharp.Core;
 
-public class MsmpException(string message, int code, JToken? data = null) : Exception(message)
+public class MsmpException(string message, int code, JsonNode? data = null) : Exception(message)
 {
     public int Code { get; } = code;
-    public new JToken? Data { get; } = data;
+    public new JsonNode? Data { get; } = data;
 }

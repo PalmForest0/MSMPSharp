@@ -1,22 +1,22 @@
 ﻿using MSMPSharp.Extensions;
 using MSMPSharp.Modules;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using System.Net.WebSockets;
-using System.Text;
-using System.Net.Security;
 using MSMPSharp.Core.Internal;
 using MSMPSharp.Events;
+using System.Net.WebSockets;
+using System.Net.Security;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace MSMPSharp.Core;
 
 public class MsmpClient : IAsyncDisposable
 {
-    private static readonly JsonSerializerSettings _jsonSettings = new()
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
-        ContractResolver = new CamelCasePropertyNamesContractResolver(),
-        NullValueHandling = NullValueHandling.Ignore
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
     private readonly Uri _serverUri;
@@ -96,18 +96,18 @@ public class MsmpClient : IAsyncDisposable
             while (_socket.State == WebSocketState.Open)
             {
                 string json = await _socket.ReceiveInChunksAsync(CancellationToken.None);
-                var obj = JObject.Parse(json);
+                JsonNode? jsonNode = JsonNode.Parse(json);
 
-                if (obj is null)
+                if (jsonNode is null)
                     continue;
 
                 // If the json has an id, it is a method response
-                if (obj["id"] is not null)
-                    HandleResponse(obj.ToObject<RpcResponse>());
+                if (jsonNode["id"] is not null)
+                    HandleResponse(jsonNode.Deserialize<RpcResponse>(_jsonOptions));
 
                 // If the json has a method, it is a notification
-                else if (obj["method"] is not null)
-                    HandleNotification(obj.ToObject<RpcNotification>());
+                else if (jsonNode["method"] is not null)
+                    HandleNotification(jsonNode.Deserialize<RpcNotification>(_jsonOptions));
             }
         }
         finally
@@ -165,8 +165,8 @@ public class MsmpClient : IAsyncDisposable
         if (_socket.State != WebSocketState.Open)
             throw new InvalidOperationException($"Cannot send request: socket is {_socket.State}. Call ConnectAsync() first.");
 
-        // Custom JSON setting required to convert all property names to lowercase
-        string json = JsonConvert.SerializeObject(request, _jsonSettings);
+        // Serialize the request to JSON and send it through the websocket
+        string json = JsonSerializer.Serialize(request, _jsonOptions);
         var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(json));
         await _socket.SendAsync(buffer, WebSocketMessageType.Text, endOfMessage: true, CancellationToken.None);
     }
@@ -197,12 +197,12 @@ public class MsmpClient : IAsyncDisposable
 
         // Await until the task result is set by the receiver
         var response = await tcs.Task;
-        var result = response.Result!.ToObject<T>();
+        var result = response.Result!.Deserialize<T>();
 
         return result ?? throw new InvalidOperationException($"Failed to deserialize result to type {typeof(T).Name} for method {method}.");
     }
 
-    public async Task<JObject> GetSchemaAsync() => await SendAsync<JObject>("rpc.discover");
+    public async Task<JsonObject> GetSchemaAsync() => await SendAsync<JsonObject>("rpc.discover");
 
     /// <summary>
     /// Asynchronously disposes the client and closes the websocket connection.
@@ -211,5 +211,6 @@ public class MsmpClient : IAsyncDisposable
     {
         await DisconnectAsync();
         _socket.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
