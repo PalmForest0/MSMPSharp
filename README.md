@@ -96,7 +96,6 @@ if(player is not null)
 - [ ] **CancellationToken** – Use the cancellation token throughout client logic instead of  `CancellationToken.None`
 - [ ] **Reconnection logic** – Add automatic reconnection with exponential backoff
 - [ ] **Timeout handling** – Add a configurable request timeout to prevent freezing
-- [ ] **Replace Newtonsoft.Json** – Reduce the reliance on external dependencies if possible
 - [ ] **Structured logging** – Add `ILogger` / `Microsoft.Extensions.Logging` support so callers can control log output
 - [ ] **Improve Usability** – Include more intuitive methods in modules to make performing basic actions easier
 - [ ] **Dependency injection** – Potentially register `MsmpClient` as a DI service to allow for cleaner usage
