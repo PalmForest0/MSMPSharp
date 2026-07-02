@@ -11,17 +11,17 @@ public sealed class BansModule : ModuleBase
     {
         client.SetNotificationHandler("minecraft:notification/bans/added", notif =>
         {
-            if (notif.TryGetParams<UserBan[]>(out var list))
-                BanAdded?.Invoke(this, new BanEventArgs(list![0]));
+            if (notif.TryGetParams<UserBan>(out var ban))
+                BanAdded?.Invoke(this, new BanEventArgs(ban));
         });
 
         client.SetNotificationHandler("minecraft:notification/bans/removed", async notif =>
         {
-            if (notif.TryGetParams<Player[]>(out var list))
+            if (notif.TryGetParams<Player>(out var player))
             {
                 var allBans = await GetAsync();
-                if (allBans.FirstOrDefault(ban => ban.Player == list![0]) is UserBan removedBan)
-                    BanRemoved?.Invoke(this, new BanEventArgs(removedBan));
+                if (allBans.FirstOrDefault(ban => ban.Player == player) is UserBan ban)
+                    BanRemoved?.Invoke(this, new BanEventArgs(ban));
             }
         });
     }

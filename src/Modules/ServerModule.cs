@@ -1,4 +1,5 @@
 ﻿using MSMPSharp.Core;
+using MSMPSharp.Events;
 using MSMPSharp.Models.Server;
 
 namespace MSMPSharp.Modules;
@@ -15,8 +16,8 @@ public sealed class ServerModule : ModuleBase
 
         client.SetNotificationHandler("minecraft:notification/server/status", notif =>
         {
-            if (notif.TryGetParams<ServerState[]>(out var list))
-                Status?.Invoke(list![0]);
+            if (notif.TryGetParams<ServerState>(out var state))
+                Status?.Invoke(this, new ServerStateEventArgs(state));
         });
     }
 
@@ -43,7 +44,7 @@ public sealed class ServerModule : ModuleBase
     /// <summary>
     /// An event that is invoked on every server status heartbeat.
     /// </summary>
-    public event Action<ServerState>? Status;
+    public event EventHandler<ServerStateEventArgs>? Status;
 
     /// <summary>
     /// An event that is invoked when the network connection is initialized.

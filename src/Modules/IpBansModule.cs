@@ -10,17 +10,17 @@ public sealed class IpBansModule : ModuleBase
     {
         client.SetNotificationHandler("minecraft:notification/ip_bans/added", notif =>
         {
-            if (notif.TryGetParams<IpBan[]>(out var list))
-                IpBanAdded?.Invoke(this, new IpBanEventArgs(list![0]));
+            if (notif.TryGetParams<IpBan>(out var ipBan))
+                IpBanAdded?.Invoke(this, new IpBanEventArgs(ipBan));
         });
 
         client.SetNotificationHandler("minecraft:notification/ip_bans/removed", async notif =>
         {
-            if (notif.TryGetParams<string[]>(out var list))
+            if (notif.TryGetParams<string>(out var ip))
             {
                 var allIpBans = await GetAsync();
-                if (allIpBans.FirstOrDefault(ban => ban.Ip == list![0]) is IpBan removedBan)
-                    IpBanRemoved?.Invoke(this, new IpBanEventArgs(removedBan));
+                if (allIpBans.FirstOrDefault(ban => ban.Ip == ip) is IpBan ipBan)
+                    IpBanRemoved?.Invoke(this, new IpBanEventArgs(ipBan));
             }
         });
     }

@@ -10,14 +10,14 @@ public sealed class AllowlistModule : ModuleBase
     {
         client.SetNotificationHandler("minecraft:notification/allowlist/added", notif =>
         {
-            if (notif.TryGetParams<Player[]>(out var list))
-                PlayerAdded?.Invoke(this, new PlayerEventArgs(list![0]));
+            if (notif.TryGetParams<Player>(out var player))
+                PlayerAdded?.Invoke(this, new PlayerEventArgs(player));
         });
 
         client.SetNotificationHandler("minecraft:notification/allowlist/removed", notif =>
         {
-            if (notif.TryGetParams<Player[]>(out var list))
-                PlayerRemoved?.Invoke(this, new PlayerEventArgs(list![0]));
+            if (notif.TryGetParams<Player>(out var player))
+                PlayerRemoved?.Invoke(this, new PlayerEventArgs(player));
         });
     }
 

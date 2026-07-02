@@ -1,4 +1,5 @@
 ﻿using MSMPSharp.Core;
+using MSMPSharp.Events;
 using MSMPSharp.Models.Game;
 using MSMPSharp.Models.Server;
 
@@ -10,26 +11,26 @@ public sealed class OperatorsModule : ModuleBase
     {
         client.SetNotificationHandler("minecraft:notification/operators/added", notif =>
         {
-            if (notif.TryGetParams<Operator[]>(out var list))
-                OperatorAdded?.Invoke(list![0]);
+            if (notif.TryGetParams<Operator>(out var op))
+                OperatorAdded?.Invoke(this, new OperatorEventArgs(op));
         });
 
         client.SetNotificationHandler("minecraft:notification/operators/removed", notif =>
         {
-            if (notif.TryGetParams<Operator[]>(out var list))
-                OperatorRemoved?.Invoke(list![0]);
+            if (notif.TryGetParams<Operator>(out var op))
+                OperatorRemoved?.Invoke(this, new OperatorEventArgs(op));
         });
     }
 
     /// <summary>
     /// An event that is invoked when a player is oped.
     /// </summary>
-    public event Action<Operator>? OperatorAdded;
+    public event EventHandler<OperatorEventArgs>? OperatorAdded;
 
     /// <summary>
     /// An event that is invoked when a player is deoped.
     /// </summary>
-    public event Action<Operator>? OperatorRemoved;
+    public event EventHandler<OperatorEventArgs>? OperatorRemoved;
 
     /// <summary>
     /// Gets all OPed list on the server.

@@ -11,14 +11,14 @@ public sealed class PlayersModule : ModuleBase
     {
         client.SetNotificationHandler("minecraft:notification/players/joined", notif =>
         {
-            if (notif.TryGetParams<Player[]>(out var list))
-                PlayerJoined?.Invoke(this, new PlayerEventArgs(list![0]));
+            if (notif.TryGetParams<Player>(out var player))
+                PlayerJoined?.Invoke(this, new PlayerEventArgs(player));
         });
 
         client.SetNotificationHandler("minecraft:notification/players/left", notif =>
         {
-            if (notif.TryGetParams<Player[]>(out var list))
-                PlayerLeft?.Invoke(this, new PlayerEventArgs(list![0]));
+            if (notif.TryGetParams<Player>(out var player))
+                PlayerLeft?.Invoke(this, new PlayerEventArgs(player));
         });
     }
 

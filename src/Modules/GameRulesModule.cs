@@ -10,8 +10,8 @@ public sealed class GameRulesModule : ModuleBase
     {
         client.SetNotificationHandler("minecraft:notification/gamerules/updated", notif =>
         {
-            if (notif.TryGetParams<TypedGameRule[]>(out var rules) && rules is not null && rules.Length > 0)
-                Updated?.Invoke(this, new TypedGameRuleEventArgs(rules[0]));
+            if (notif.TryGetParams<TypedGameRule>(out var rule))
+                Updated?.Invoke(this, new TypedGameRuleEventArgs(rule));
         });
     }
 
