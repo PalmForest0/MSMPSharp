@@ -1,4 +1,5 @@
 ﻿using MSMPSharp.Core;
+using MSMPSharp.Events;
 using MSMPSharp.Models.Game;
 
 namespace MSMPSharp.Modules;
@@ -10,25 +11,25 @@ public sealed class AllowlistModule : ModuleBase
         client.SetNotificationHandler("minecraft:notification/allowlist/added", notif =>
         {
             if (notif.TryGetParams<Player[]>(out var list))
-                PlayerAdded?.Invoke(list![0]);
+                PlayerAdded?.Invoke(this, new PlayerEventArgs(list![0]));
         });
 
         client.SetNotificationHandler("minecraft:notification/allowlist/removed", notif =>
         {
             if (notif.TryGetParams<Player[]>(out var list))
-                PlayerRemoved?.Invoke(list![0]);
+                PlayerRemoved?.Invoke(this, new PlayerEventArgs(list![0]));
         });
     }
 
     /// <summary>
     /// An event that is invoked when a player is added to the allowlist.
     /// </summary>
-    public event Action<Player>? PlayerAdded;
+    public event EventHandler<PlayerEventArgs>? PlayerAdded;
 
     /// <summary>
     /// An event that is invoked when a player is removed from the allowlist.
     /// </summary>
-    public event Action<Player>? PlayerRemoved;
+    public event EventHandler<PlayerEventArgs>? PlayerRemoved;
 
     /// <summary>
     /// Gets the allowlist.

@@ -1,4 +1,5 @@
 ﻿using MSMPSharp.Core;
+using MSMPSharp.Events;
 using MSMPSharp.Models.Game;
 using MSMPSharp.Models.Server;
 
@@ -11,25 +12,29 @@ public sealed class BansModule : ModuleBase
         client.SetNotificationHandler("minecraft:notification/bans/added", notif =>
         {
             if (notif.TryGetParams<UserBan[]>(out var list))
-                BanAdded?.Invoke(list![0]);
+                BanAdded?.Invoke(this, new BanEventArgs(list![0]));
         });
 
-        client.SetNotificationHandler("minecraft:notification/bans/removed", notif =>
+        client.SetNotificationHandler("minecraft:notification/bans/removed", async notif =>
         {
             if (notif.TryGetParams<Player[]>(out var list))
-                BanRemoved?.Invoke(list![0]);
+            {
+                var allBans = await GetAsync();
+                if (allBans.FirstOrDefault(ban => ban.Player == list![0]) is UserBan removedBan)
+                    BanRemoved?.Invoke(this, new BanEventArgs(removedBan));
+            }
         });
     }
 
     /// <summary>
     /// An event that is invoked when a player is added to the ban list.
     /// </summary>
-    public event Action<UserBan>? BanAdded;
+    public event EventHandler<BanEventArgs>? BanAdded;
 
     /// <summary>
     /// An event that is invoked when a player is removed from the ban list.
     /// </summary>
-    public event Action<Player>? BanRemoved;
+    public event EventHandler<BanEventArgs>? BanRemoved;
 
     /// <summary>
     /// Gets the server's ban list.

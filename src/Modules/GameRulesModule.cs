@@ -1,4 +1,5 @@
 ﻿using MSMPSharp.Core;
+using MSMPSharp.Events;
 using MSMPSharp.Models.Game;
 
 namespace MSMPSharp.Modules;
@@ -9,15 +10,15 @@ public sealed class GameRulesModule : ModuleBase
     {
         client.SetNotificationHandler("minecraft:notification/gamerules/updated", notif =>
         {
-            if (notif.TryGetParams<TypedGameRule[]>(out var list))
-                Updated?.Invoke(list![0]);
+            if (notif.TryGetParams<TypedGameRule[]>(out var rules) && rules is not null && rules.Length > 0)
+                Updated?.Invoke(this, new TypedGameRuleEventArgs(rules[0]));
         });
     }
 
     /// <summary>
     /// An event that is invoked when a game rule was changed.
     /// </summary>
-    public event Action<TypedGameRule>? Updated;
+    public event EventHandler<TypedGameRuleEventArgs>? Updated;
 
     /// <summary>
     /// Get the available game rule keys and their current values.
