@@ -2,7 +2,12 @@
 
 namespace MSMPSharp.Events;
 
-public class IpBanEventArgs(IpBan ipBan) : EventArgs
+public sealed class IpBanEventArgs : EventArgs
 {
-    public IpBan IpBan { get; } = ipBan;
+    public IpBan IpBan { get; }
+
+    internal IpBanEventArgs(IpBan ipBan)
+    {
+        IpBan = ipBan;
+    }
 }

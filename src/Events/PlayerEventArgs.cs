@@ -2,7 +2,12 @@
 
 namespace MSMPSharp.Events;
 
-public class PlayerEventArgs(Player player) : EventArgs
+public sealed class PlayerEventArgs : EventArgs
 {
-    public Player Player { get; } = player;
+    public Player Player { get; }
+
+    internal PlayerEventArgs(Player player)
+    {
+        Player = player;
+    }
 }

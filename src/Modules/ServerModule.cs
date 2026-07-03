@@ -8,11 +8,11 @@ public sealed class ServerModule : ModuleBase
 {
     internal ServerModule(MsmpClient client) : base(client)
     {
-        client.SetNotificationHandler("minecraft:notification/server/started", _ => Started?.Invoke());
-        client.SetNotificationHandler("minecraft:notification/server/stopping", _ => Stopping?.Invoke());
-        client.SetNotificationHandler("minecraft:notification/server/saving", _ => Saving?.Invoke());
-        client.SetNotificationHandler("minecraft:notification/server/saved", _ => Saved?.Invoke());
-        client.SetNotificationHandler("minecraft:notification/server/activity", _ => Activity?.Invoke());
+        client.SetNotificationHandler("minecraft:notification/server/started",  _ => Started?.Invoke(this, EventArgs.Empty));
+        client.SetNotificationHandler("minecraft:notification/server/stopping", _ => Stopping?.Invoke(this, EventArgs.Empty));
+        client.SetNotificationHandler("minecraft:notification/server/saving",   _ => Saving?.Invoke(this, EventArgs.Empty));
+        client.SetNotificationHandler("minecraft:notification/server/saved",    _ => Saved?.Invoke(this, EventArgs.Empty));
+        client.SetNotificationHandler("minecraft:notification/server/activity", _ => Activity?.Invoke(this, EventArgs.Empty));
 
         client.SetNotificationHandler("minecraft:notification/server/status", notif =>
         {
@@ -24,22 +24,22 @@ public sealed class ServerModule : ModuleBase
     /// <summary>
     /// An event that is invoked when the server is started.
     /// </summary>
-    public event Action? Started;
+    public event EventHandler? Started;
 
     /// <summary>
     /// An event that is invoked when the server is shutting down.
     /// </summary>
-    public event Action? Stopping;
+    public event EventHandler? Stopping;
 
     /// <summary>
     /// An event that is invoked when the server save is started.
     /// </summary>
-    public event Action? Saving;
+    public event EventHandler? Saving;
 
     /// <summary>
     /// An event that is invoked when the server save is completed.
     /// </summary>
-    public event Action? Saved;
+    public event EventHandler? Saved;
 
     /// <summary>
     /// An event that is invoked on every server status heartbeat.
@@ -49,7 +49,7 @@ public sealed class ServerModule : ModuleBase
     /// <summary>
     /// An event that is invoked when the network connection is initialized.
     /// </summary>
-    public event Action? Activity;
+    public event EventHandler? Activity;
 
     /// <summary>
     /// Gets the server's current status.

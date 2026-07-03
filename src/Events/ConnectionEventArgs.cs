@@ -1,6 +1,11 @@
 ﻿namespace MSMPSharp.Events;
 
-public class ConnectionEventArgs(Uri serverUri) : EventArgs
+public sealed class ConnectionEventArgs : EventArgs
 {
-    public Uri ServerUri { get; } = serverUri;
+    public Uri ServerUri { get; }
+
+    internal ConnectionEventArgs(Uri serverUri)
+    {
+        ServerUri = serverUri;
+    }
 }

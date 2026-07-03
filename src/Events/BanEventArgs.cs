@@ -2,7 +2,12 @@
 
 namespace MSMPSharp.Events;
 
-public class BanEventArgs(UserBan userBan) : EventArgs
+public sealed class BanEventArgs : EventArgs
 {
-    public UserBan UserBan { get; } = userBan;
+    public UserBan UserBan { get; }
+
+    internal BanEventArgs(UserBan userBan)
+    {
+        UserBan = userBan;
+    }
 }

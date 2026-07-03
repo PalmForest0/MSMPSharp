@@ -2,7 +2,12 @@
 
 namespace MSMPSharp.Events;
 
-public class ServerStateEventArgs(ServerState state) : EventArgs
+public sealed class ServerStateEventArgs : EventArgs
 {
-    public ServerState State { get; } = state;
+    public ServerState State { get; }
+
+    internal ServerStateEventArgs(ServerState state)
+    {
+        State = state;
+    }
 }

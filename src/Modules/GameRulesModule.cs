@@ -11,14 +11,14 @@ public sealed class GameRulesModule : ModuleBase
         client.SetNotificationHandler("minecraft:notification/gamerules/updated", notif =>
         {
             if (notif.TryGetParams<TypedGameRule>(out var rule))
-                Updated?.Invoke(this, new TypedGameRuleEventArgs(rule));
+                Updated?.Invoke(this, new GameRuleEventArgs(rule));
         });
     }
 
     /// <summary>
     /// An event that is invoked when a game rule was changed.
     /// </summary>
-    public event EventHandler<TypedGameRuleEventArgs>? Updated;
+    public event EventHandler<GameRuleEventArgs>? Updated;
 
     /// <summary>
     /// Get the available game rule keys and their current values.

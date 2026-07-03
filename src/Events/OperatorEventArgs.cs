@@ -2,7 +2,12 @@
 
 namespace MSMPSharp.Events;
 
-public class OperatorEventArgs(Operator op) : EventArgs
+public sealed class OperatorEventArgs : EventArgs
 {
-    public Operator Operator { get; } = op;
+    public Operator Operator { get; }
+
+    internal OperatorEventArgs(Operator op)
+    {
+        Operator = op;
+    }
 }

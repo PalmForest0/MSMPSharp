@@ -7,26 +7,26 @@ public sealed class ServerSettingsModule : ModuleBase
 {
     internal ServerSettingsModule(MsmpClient client) : base(client)
     {
-        Autosave = new ServerSetting<bool>(client, "autosave");
-        Difficulty = new ServerSetting<string>(client, "difficulty");
-        EnforceAllowlist = new ServerSetting<bool>(client, "enforce_allowlist");
-        UseAllowlist = new ServerSetting<bool>(client, "use_allowlist");
-        MaxPlayers = new ServerSetting<int>(client, "max_players");
-        PauseWhenEmptySeconds = new ServerSetting<int>(client, "pause_when_empty_seconds");
-        PlayerIdleTimeout = new ServerSetting<int>(client, "player_idle_timeout");
-        AllowFlight = new ServerSetting<bool>(client, "allow_flight");
-        Motd = new ServerSetting<string>(client, "motd");
-        SpawnProtectionRadius = new ServerSetting<int>(client, "spawn_protection_radius");
-        ForceGameMode = new ServerSetting<bool>(client, "force_game_mode");
-        GameMode = new ServerSetting<string>(client, "game_mode");
-        ViewDistance = new ServerSetting<int>(client, "view_distance");
-        SimulationDistance = new ServerSetting<int>(client, "simulation_distance");
-        AcceptTransfers = new ServerSetting<bool>(client, "accept_transfers");
-        StatusHeartbeatInterval = new ServerSetting<int>(client, "status_heartbeat_interval");
-        OperatorUserPermissionLevel = new ServerSetting<int>(client, "operator_user_permission_level");
-        HideOnlinePlayers = new ServerSetting<bool>(client, "hide_online_players");
-        StatusReplies = new ServerSetting<bool>(client, "status_replies");
-        EntityBroadcastRange = new ServerSetting<int>(client, "entity_broadcast_range");
+        Autosave                    = new ServerSetting<bool>   (client, "autosave");
+        Difficulty                  = new ServerSetting<string> (client, "difficulty");
+        EnforceAllowlist            = new ServerSetting<bool>   (client, "enforce_allowlist");
+        UseAllowlist                = new ServerSetting<bool>   (client, "use_allowlist");
+        MaxPlayers                  = new ServerSetting<int>    (client, "max_players");
+        PauseWhenEmptySeconds       = new ServerSetting<int>    (client, "pause_when_empty_seconds");
+        PlayerIdleTimeout           = new ServerSetting<int>    (client, "player_idle_timeout");
+        AllowFlight                 = new ServerSetting<bool>   (client, "allow_flight");
+        Motd                        = new ServerSetting<string> (client, "motd");
+        SpawnProtectionRadius       = new ServerSetting<int>    (client, "spawn_protection_radius");
+        ForceGameMode               = new ServerSetting<bool>   (client, "force_game_mode");
+        GameMode                    = new ServerSetting<string> (client, "game_mode");
+        ViewDistance                = new ServerSetting<int>    (client, "view_distance");
+        SimulationDistance          = new ServerSetting<int>    (client, "simulation_distance");
+        AcceptTransfers             = new ServerSetting<bool>   (client, "accept_transfers");
+        StatusHeartbeatInterval     = new ServerSetting<int>    (client, "status_heartbeat_interval");
+        OperatorUserPermissionLevel = new ServerSetting<int>    (client, "operator_user_permission_level");
+        HideOnlinePlayers           = new ServerSetting<bool>   (client, "hide_online_players");
+        StatusReplies               = new ServerSetting<bool>   (client, "status_replies");
+        EntityBroadcastRange        = new ServerSetting<int>    (client, "entity_broadcast_range");
     }
 
     /// <summary>
