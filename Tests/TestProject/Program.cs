@@ -1,7 +1,8 @@
 ﻿using MSMPSharp.Core;
 using MSMPSharp.Models.Game;
 using MSMPSharp.Models.Server;
-using Newtonsoft.Json.Linq;
+using MSMPSharp.Modules;
+using System.Text.Json.Nodes;
 
 // Do not warn about unused methods
 #pragma warning disable CS8321
@@ -21,8 +22,9 @@ client.Players.PlayerLeft += (sender, e) => Console.WriteLine($"{e.Player.Name} 
 // Connect to the server
 await client.ConnectAsync();
 
-Player player = await GetTestPlayer(client);
-await TestSystemMessage(client, player);
+await SaveSchema(client);
+//Player player = await GetTestPlayer(client);
+//await TestSystemMessage(client, player);
 
 // Disconnect from the server
 await client.DisconnectAsync();
@@ -30,8 +32,8 @@ await client.DisconnectAsync();
 
 static async Task SaveSchema(MsmpClient client)
 {
-    JObject schema = await client.GetSchemaAsync();
-    await File.WriteAllTextAsync("schema.json", schema.ToString(Newtonsoft.Json.Formatting.Indented));
+    JsonObject schema = await client.GetSchemaAsync();
+    await File.WriteAllTextAsync("schema.json", schema.ToJsonString(options: new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
 }
 
 static async Task<Player> GetTestPlayer(MsmpClient client)
@@ -62,7 +64,7 @@ static async Task TestSystemMessage(MsmpClient client, Player player)
 static async Task TestIpBan(MsmpClient client, Player player)
 {
     await client.IpBans.ClearAsync();
-    await client.IpBans.AddAsync(new IncomingIpBan(player, DateTime.Now.AddSeconds(10)));
+    await client.IpBans.AddAsync(IncomingIpBan.ToPlayer(player, reason: "Test", expires: DateTime.Now.AddSeconds(10), source: "MSMPSharp"));
 }
 
 static async Task TestKick(MsmpClient client, Player player)

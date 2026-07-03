@@ -2,11 +2,11 @@
 
 namespace MSMPSharp.Models.Server;
 
-public class Operator
+public sealed class Operator
 {
-    public Player Player { get; set; }
-    public int PermissionLevel { get; set; }
-    public bool BypassesPlayerLimit { get; set; }
+    public Player Player { get; }
+    public int PermissionLevel { get; }
+    public bool BypassesPlayerLimit { get; }
 
     /// <summary>
     /// Creates the data for a server operator using a player.
@@ -17,5 +17,7 @@ public class Operator
     public Operator(Player player, int permissionLevel = 4, bool bypassesPlayerLimit = true)
     {
         Player = player;
+        PermissionLevel = permissionLevel;
+        BypassesPlayerLimit = bypassesPlayerLimit;
     }
 }

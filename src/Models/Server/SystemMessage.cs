@@ -4,14 +4,14 @@ namespace MSMPSharp.Models.Server;
 
 public sealed class SystemMessage
 {
-    public Player[] ReceivingPlayers { get; }
     public Message Message { get; }
+    public Player[] ReceivingPlayers { get; }
     public bool Overlay { get; }
 
     private SystemMessage(Message message, Player[] players, bool overlay)
     {
-        ReceivingPlayers = players;
         Message = message;
+        ReceivingPlayers = players;
         Overlay = overlay;
     }
 

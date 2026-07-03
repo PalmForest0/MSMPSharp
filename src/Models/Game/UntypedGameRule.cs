@@ -1,21 +1,9 @@
 ﻿namespace MSMPSharp.Models.Game;
 
-public sealed class UntypedGameRule
+public sealed class UntypedGameRule(string key, string value)
 {
-    public string Key { get; set; }
-    public string Value { get; set; }
-
-    public UntypedGameRule(string key, string value)
-    {
-        Key = key;
-        Value = value;
-    }
-
-    /// <summary>
-    /// Create untyped game rule from touple.
-    /// </summary>
-    /// <param name="pair">A touple containing a key string and value string.</param>
-    public static implicit operator UntypedGameRule((string key, string value) pair) => new UntypedGameRule(pair.key, pair.value);
+    public string Key { get; } = key;
+    public string Value { get; } = value;
 
     /// <summary>
     /// Create untyped game rule from typed game rule.

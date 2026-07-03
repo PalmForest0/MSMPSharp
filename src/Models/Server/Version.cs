@@ -1,9 +1,16 @@
-﻿namespace MSMPSharp.Models.Server;
+﻿using System.Text.Json.Serialization;
 
-public class Version
+namespace MSMPSharp.Models.Server;
+
+public sealed class Version
 {
-    public string Name { get; set; } = "";
-    public string Protocol { get; set; } = "";
+    public string Name { get; }
+    public string Protocol { get; }
 
-    private Version() { }
+    [JsonConstructor]
+    private Version(string name, string protocol)
+    {
+        Name = name;
+        Protocol = protocol;
+    }
 }
