@@ -5,27 +5,41 @@ namespace MSMPSharp.Extensions;
 
 internal static class WebSocketExtensions
 {
-    extension(ClientWebSocket socket)
+    /// <summary>
+    /// Receives a message from the WebSocket in chunks and returns it as a string.
+    /// </summary>
+    /// <param name="socket">Open ClientWebSocket instance</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The received message as a string</returns>
+    /// <exception cref="WebSocketException"/>
+    internal static async Task<string> ReceiveInChunksAsync(this ClientWebSocket socket, CancellationToken cancellationToken)
     {
-        public async Task<string> ReceiveInChunksAsync(CancellationToken cancellationToken)
+        var buffer = new byte[4096];
+        using var ms = new MemoryStream();
+
+        WebSocketReceiveResult result;
+
+        do
         {
-            var buffer = new byte[4096];
-            using var ms = new MemoryStream();
+            result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
-            WebSocketReceiveResult result;
-
-            do
+            if (result.MessageType == WebSocketMessageType.Close)
             {
-                result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                var ex = new WebSocketException(
+                    $"WebSocket closed unexpectedly while receiving a message (status: {result.CloseStatus}, description: \"{result.CloseStatusDescription}\").");
 
-                if (result.MessageType == WebSocketMessageType.Close)
-                    throw new WebSocketException("WebSocket closed unexpectedly.");
+                ex.Data["CloseStatus"] = result.CloseStatus;
+                ex.Data["CloseStatusDescription"] = result.CloseStatusDescription;
+                ex.Data["SocketState"] = socket.State;
+                ex.Data["BytesReceivedBeforeClose"] = ms.Length;
 
-                await ms.WriteAsync(buffer, 0, result.Count);
+                throw ex;
             }
-            while (!result.EndOfMessage);
 
-            return Encoding.UTF8.GetString(ms.ToArray());
+            await ms.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
         }
+        while (!result.EndOfMessage);
+
+        return Encoding.UTF8.GetString(ms.ToArray());
     }
 }
