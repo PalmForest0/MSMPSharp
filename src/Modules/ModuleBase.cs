@@ -4,10 +4,12 @@ namespace MSMPSharp.Modules;
 
 public abstract class ModuleBase
 {
-    protected readonly MsmpClient client;
+    protected readonly MsmpClient _client;
 
     private protected ModuleBase(MsmpClient client)
     {
-        this.client = client;
+        _client = client;
     }
+
+    internal virtual void RegisterNotificationHandlers() { }
 }

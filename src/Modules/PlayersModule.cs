@@ -7,15 +7,17 @@ namespace MSMPSharp.Modules;
 
 public sealed class PlayersModule : ModuleBase
 {
-    internal PlayersModule(MsmpClient client) : base(client)
+    internal PlayersModule(MsmpClient client) : base(client) { }
+
+    internal override void RegisterNotificationHandlers()
     {
-        client.SetNotificationHandler("minecraft:notification/players/joined", notif =>
+        _client.SetNotificationHandler("minecraft:notification/players/joined", notif =>
         {
             if (notif.TryGetParams<Player>(out var player))
                 PlayerJoined?.Invoke(this, new PlayerEventArgs(player));
         });
 
-        client.SetNotificationHandler("minecraft:notification/players/left", notif =>
+        _client.SetNotificationHandler("minecraft:notification/players/left", notif =>
         {
             if (notif.TryGetParams<Player>(out var player))
                 PlayerLeft?.Invoke(this, new PlayerEventArgs(player));
@@ -38,7 +40,7 @@ public sealed class PlayersModule : ModuleBase
     /// <returns>An array of players that meet the condition.</returns>
     public async Task<Player[]> GetAsync(Func<Player, bool>? condition = null)
     {
-        var players = await client.SendAsync<Player[]>("minecraft:players");
+        var players = await _client.SendAsync<Player[]>("minecraft:players");
         return condition is null ? players : players.Where(condition).ToArray();
     }
 
@@ -51,7 +53,7 @@ public sealed class PlayersModule : ModuleBase
         if (condition is null)
             return null;
 
-        var players = (await client.SendAsync<Player[]>("minecraft:players")).Where(condition).ToArray();
+        var players = (await _client.SendAsync<Player[]>("minecraft:players")).Where(condition).ToArray();
         return players.Length == 0 ? null : players[0];
     }
 
@@ -60,12 +62,5 @@ public sealed class PlayersModule : ModuleBase
     /// </summary>
     /// <param name="kickPlayers">An array of player kick data objects.</param>
     /// <returns>An array of kicked players.</returns>
-    public async Task<Player[]> KickAsync(KickPlayer[] kickPlayers) => await client.SendAsync<Player[]>("minecraft:players/kick", [kickPlayers]);
-
-    /// <summary>
-    /// Kicks a player from the server.
-    /// </summary>
-    /// <param name="kickPlayer">A player kick data object.</param>
-    /// <returns>An array of kicked players.</returns>
-    public async Task<Player[]> KickAsync(KickPlayer kickPlayer) => await KickAsync([kickPlayer]);
+    public async Task<Player[]> KickAsync(params KickPlayer[] kickPlayers) => await _client.SendAsync<Player[]>("minecraft:players/kick", [kickPlayers]);
 }

@@ -6,15 +6,17 @@ namespace MSMPSharp.Modules;
 
 public sealed class IpBansModule : ModuleBase
 {
-    internal IpBansModule(MsmpClient client) : base(client)
+    internal IpBansModule(MsmpClient client) : base(client) { }
+
+    internal override void RegisterNotificationHandlers()
     {
-        client.SetNotificationHandler("minecraft:notification/ip_bans/added", notif =>
+        _client.SetNotificationHandler("minecraft:notification/ip_bans/added", notif =>
         {
             if (notif.TryGetParams<IpBan>(out var ipBan))
                 IpBanAdded?.Invoke(this, new IpBanEventArgs(ipBan));
         });
 
-        client.SetNotificationHandler("minecraft:notification/ip_bans/removed", async notif =>
+        _client.SetNotificationHandler("minecraft:notification/ip_bans/removed", async notif =>
         {
             if (notif.TryGetParams<string>(out var ip))
             {
@@ -40,32 +42,39 @@ public sealed class IpBansModule : ModuleBase
     /// Gets the server's IP ban list.
     /// </summary>
     /// <returns>An array of the server's IP bans.</returns>
-    public async Task<IpBan[]> GetAsync() => await client.SendAsync<IpBan[]>("minecraft:ip_bans");
+    public async Task<IpBan[]> GetAsync() => await _client.SendAsync<IpBan[]>("minecraft:ip_bans");
 
     /// <summary>
     /// Sets the server's IP ban list.
     /// </summary>
     /// <param name="bans">An array of IP bans to set the ban list to.</param>
     /// <returns>An array of the server's IP bans.</returns>
-    public async Task<IpBan[]> SetAsync(params IpBan[] bans) => await client.SendAsync<IpBan[]>("minecraft:ip_bans/set", [bans]);
+    public async Task<IpBan[]> SetAsync(params IpBan[] bans) => await _client.SendAsync<IpBan[]>("minecraft:ip_bans/set", [bans]);
 
     /// <summary>
     /// Adds players to the server's IP ban list.
     /// </summary>
     /// <param name="bans">An array of incoming IP bans to add to the IP ban list.</param>
     /// <returns>An array of the server's IP bans.</returns>
-    public async Task<IpBan[]> AddAsync(params IncomingIpBan[] bans) => await client.SendAsync<IpBan[]>("minecraft:ip_bans/add", [bans]);
+    public async Task<IpBan[]> AddAsync(params IncomingIpBan[] bans) => await _client.SendAsync<IpBan[]>("minecraft:ip_bans/add", [bans]);
+
+    /// <summary>
+    /// Removes players from the server's IP ban list.
+    /// </summary>
+    /// <param name="bans">An array of IpBans to remove from the server's IP ban list.</param>
+    /// <returns>An array of the server's IP bans.</returns>
+    public async Task<IpBan[]> RemoveAsync(params IpBan[] bans) => await RemoveAsync(bans.Select(ban => ban.Ip).ToArray());
 
     /// <summary>
     /// Removes players from the server's IP ban list.
     /// </summary>
     /// <param name="ips">An array of IPs to remove from the server's IP ban list.</param>
     /// <returns>An array of the server's IP bans.</returns>
-    public async Task<IpBan[]> RemoveAsync(params string[] ips) => await client.SendAsync<IpBan[]>("minecraft:ip_bans/remove", [ips]);
+    public async Task<IpBan[]> RemoveAsync(params string[] ips) => await _client.SendAsync<IpBan[]>("minecraft:ip_bans/remove", [ips]);
 
     /// <summary>
     /// Clears all IPs from the server's IP ban list.
     /// </summary>
     /// <returns>An array of the server's IP bans.</returns>
-    public async Task<IpBan[]> ClearAsync() => await client.SendAsync<IpBan[]>("minecraft:ip_bans/clear");
+    public async Task<IpBan[]> ClearAsync() => await _client.SendAsync<IpBan[]>("minecraft:ip_bans/clear");
 }

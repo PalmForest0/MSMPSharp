@@ -1,7 +1,6 @@
 ﻿using MSMPSharp.Core;
 using MSMPSharp.Models.Game;
 using MSMPSharp.Models.Server;
-using MSMPSharp.Modules;
 using System.Text.Json.Nodes;
 
 // Do not warn about unused methods
@@ -23,8 +22,9 @@ client.Players.PlayerLeft += (sender, e) => Console.WriteLine($"{e.Player.Name} 
 await client.ConnectAsync();
 
 await SaveSchema(client);
-//Player player = await GetTestPlayer(client);
-//await TestSystemMessage(client, player);
+
+Player player = await GetTestPlayer(client);
+await TestSystemMessage(client, player);
 
 // Disconnect from the server
 await client.DisconnectAsync();

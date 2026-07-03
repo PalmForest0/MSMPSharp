@@ -53,14 +53,25 @@ public class MsmpClient : IAsyncDisposable
         if (certValidator is not null)
             _socket.Options.RemoteCertificateValidationCallback = certValidator;
 
-        Players = new PlayersModule(this);
-        Allowlist = new AllowlistModule(this);
-        Bans = new BansModule(this);
-        IpBans = new IpBansModule(this);
-        Operators = new OperatorsModule(this);
-        Server = new ServerModule(this);
-        GameRules = new GameRulesModule(this);
-        ServerSettings = new ServerSettingsModule(this);
+        // Create all modules
+        Players =           new PlayersModule(this);
+        Allowlist =         new AllowlistModule(this);
+        Bans =              new BansModule(this);
+        IpBans =            new IpBansModule(this);
+        Operators =         new OperatorsModule(this);
+        Server =            new ServerModule(this);
+        GameRules =         new GameRulesModule(this);
+        ServerSettings =    new ServerSettingsModule(this);
+
+        // Register notification handlers for all modules
+        Players         .RegisterNotificationHandlers();
+        Allowlist       .RegisterNotificationHandlers();
+        Bans            .RegisterNotificationHandlers();
+        IpBans          .RegisterNotificationHandlers();
+        Operators       .RegisterNotificationHandlers();
+        Server          .RegisterNotificationHandlers();
+        GameRules       .RegisterNotificationHandlers();
+        ServerSettings  .RegisterNotificationHandlers();
     }
     public static MsmpClientBuilder CreateBuilder() => new MsmpClientBuilder();
 

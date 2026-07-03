@@ -7,15 +7,17 @@ namespace MSMPSharp.Modules;
 
 public sealed class BansModule : ModuleBase
 {
-    internal BansModule(MsmpClient client) : base(client)
+    internal BansModule(MsmpClient client) : base(client) { }
+
+    internal override void RegisterNotificationHandlers()
     {
-        client.SetNotificationHandler("minecraft:notification/bans/added", notif =>
+        _client.SetNotificationHandler("minecraft:notification/bans/added", notif =>
         {
             if (notif.TryGetParams<UserBan>(out var ban))
                 BanAdded?.Invoke(this, new BanEventArgs(ban));
         });
 
-        client.SetNotificationHandler("minecraft:notification/bans/removed", async notif =>
+        _client.SetNotificationHandler("minecraft:notification/bans/removed", async notif =>
         {
             if (notif.TryGetParams<Player>(out var player))
             {
@@ -40,32 +42,39 @@ public sealed class BansModule : ModuleBase
     /// Gets the server's ban list.
     /// </summary>
     /// <returns>An array of the server's user bans.</returns>
-    public async Task<UserBan[]> GetAsync() => await client.SendAsync<UserBan[]>("minecraft:bans");
+    public async Task<UserBan[]> GetAsync() => await _client.SendAsync<UserBan[]>("minecraft:bans");
 
     /// <summary>
     /// Sets the server's ban list.
     /// </summary>
     /// <param name="bans">An array of user bans to set the ban list to.</param>
     /// <returns>An array of the server's user bans.</returns>
-    public async Task<UserBan[]> SetAsync(UserBan[] bans) => await client.SendAsync<UserBan[]>("minecraft:bans/set", [bans]);
+    public async Task<UserBan[]> SetAsync(params UserBan[] bans) => await _client.SendAsync<UserBan[]>("minecraft:bans/set", [bans]);
 
     /// <summary>
     /// Adds players to the server's ban list.
     /// </summary>
     /// <param name="bans">An array of user bans to add to the ban list.</param>
     /// <returns>An array of the server's user bans.</returns>
-    public async Task<UserBan[]> AddAsync(UserBan[] bans) => await client.SendAsync<UserBan[]>("minecraft:bans/add", [bans]);
+    public async Task<UserBan[]> AddAsync(params UserBan[] bans) => await _client.SendAsync<UserBan[]>("minecraft:bans/add", [bans]);
+
+    /// <summary>
+    /// Removes players from the server's ban list.
+    /// </summary>
+    /// <param name="bans">An array of user bans to remove from the server's ban list.</param>
+    /// <returns>An array of the server's user bans.</returns>
+    public async Task<UserBan[]> RemoveAsync(params UserBan[] bans) => await _client.SendAsync<UserBan[]>("minecraft:bans/remove", [bans.Select(ban => ban.Player)]);
 
     /// <summary>
     /// Removes players from the server's ban list.
     /// </summary>
     /// <param name="players">An array of players to remove from the server's ban list.</param>
     /// <returns>An array of the server's user bans.</returns>
-    public async Task<UserBan[]> RemoveAsync(Player[] players) => await client.SendAsync<UserBan[]>("minecraft:bans/remove", [players]);
+    public async Task<UserBan[]> RemoveAsync(params Player[] players) => await _client.SendAsync<UserBan[]>("minecraft:bans/remove", [players]);
 
     /// <summary>
     /// Clears all players from the server's ban list.
     /// </summary>
     /// <returns>An array of the server's user bans.</returns>
-    public async Task<UserBan[]> ClearAsync() => await client.SendAsync<UserBan[]>("minecraft:bans/clear");
+    public async Task<UserBan[]> ClearAsync() => await _client.SendAsync<UserBan[]>("minecraft:bans/clear");
 }
