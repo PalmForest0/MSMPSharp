@@ -46,7 +46,7 @@ static async Task<Player> GetTestPlayer(MsmpClient client)
         string? name = Console.ReadLine();
 
         if (!string.IsNullOrWhiteSpace(name))
-            player = await client.Players.GetFirstAsync(player => player.Name == name);
+            player = await client.Players.FindByNameAsync(name);
 
         if(player is null)
             Console.WriteLine("Player not found, try again.");

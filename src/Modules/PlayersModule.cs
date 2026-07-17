@@ -35,27 +35,31 @@ public sealed class PlayersModule : ModuleBase
     public event EventHandler<PlayerEventArgs>? PlayerLeft;
 
     /// <summary>
-    /// Gets all connected players filtered with an optional condition.
+    /// Gets all connected players with an optional filter condition and maximum results cap.
     /// </summary>
-    /// <returns>An array of players that meet the condition.</returns>
-    public async Task<Player[]> GetAsync(Func<Player, bool>? condition = null)
+    /// <param name="condition">An optional predicate to filter players by. If null, all players are returned.</param>
+    /// <param name="maxResults">An optional cap on the number of results returned. If null, all matches are returned.</param>
+    /// <returns>An array of online players that meet the condition.</returns>
+    public async Task<Player[]> GetAsync(Func<Player, bool>? condition = null, int? maxResults = null)
     {
         var players = await _client.SendAsync<Player[]>("minecraft:players");
-        return condition is null ? players : players.Where(condition).ToArray();
+        IEnumerable<Player> result = condition is null ? players : players.Where(condition);
+        return maxResults is null ? result.ToArray() : result.Take(maxResults.Value).ToArray();
     }
 
     /// <summary>
-    /// Gets the first connected player that meets the condition.
+    /// Finds the first online player with the specified name. Returns null if no player is found.
     /// </summary>
-    /// <returns>The first player that meets the condition, otherwise null.</returns>
-    public async Task<Player?> GetFirstAsync(Func<Player, bool> condition)
-    {
-        if (condition is null)
-            return null;
+    /// <param name="name">The name of the player to find.</param>
+    /// <returns>The player if found, otherwise null.</returns>
+    public async Task<Player?> FindByNameAsync(string name) => (await GetAsync()).FirstOrDefault(p => p.Name == name);
 
-        var players = (await _client.SendAsync<Player[]>("minecraft:players")).Where(condition).ToArray();
-        return players.Length == 0 ? null : players[0];
-    }
+    /// <summary>
+    /// Finds the first online player with the specified Id. Returns null if no player is found.
+    /// </summary>
+    /// <param name="id">The Id of the player to find.</param>
+    /// <returns>The player if found, otherwise null.</returns>
+    public async Task<Player?> FindByIdAsync(string id) => (await GetAsync()).FirstOrDefault(p => p.Id == id);
 
     /// <summary>
     /// Kicks players from the server.
